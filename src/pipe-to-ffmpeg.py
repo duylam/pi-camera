@@ -1,6 +1,5 @@
 
-# 1. read file
-# 2. create pipe file
+# 1. open file
 # 3. spawn new ffpmeg to read from pipe file, convert to mp4
 # 4. feed file to pipe file
 # 5. get output from pipe file and save into file

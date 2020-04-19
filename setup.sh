@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt-get update
+
 cd ~
 mkdir ./src || true
 
@@ -16,3 +18,4 @@ cd ~/src/ffmpeg
 ./configure --arch=armel --target-os=linux --enable-gpl --enable-libx264 --enable-nonfree
 make -j4
 sudo make install
+
