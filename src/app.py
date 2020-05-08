@@ -8,8 +8,8 @@ import utils
 
 # Code gia, k sai khi co camera that
 def feedRawVideoStream(outputStream):
-  fileReadStream = io.open('./outfile.h264', mode='rb', buffering=1024)
-  stop = utils.pipeStream(fileReadStream, outputStream, autoCloseSrcStreamOnEnd = True)
+  fileReadStream = io.BufferedReader(io.FileIO('./outfile.h264', mode='r'), 102400)
+  stop = utils.pipeStream(fileReadStream, outputStream, autoCloseSrcStreamOnEnd = True, autoCloseDesStreamOnEnd = True, chunkSize = 10240)
   return stop
 
 # code gia, code thiet la ghi ra mang
@@ -28,13 +28,13 @@ def convertToMp4(rawVideoInputStream, mp4OutputStream):
   ffmpegStdoutStream = io.open(ffmpegStdoutRfd, mode='rb', buffering=1024)
 
   ffpmegProcess = subprocess.Popen([
-    'ffmpeg', '-i', '-','-codec', 'copy',
+    'ffmpeg', '-v', 'debug', '-i', '-','-codec', 'copy',
     '-movflags', 'frag_keyframe+empty_moov', # todo: temp fix for using .mov file only
     '-f','mp4','pipe:1'
-  ], stdin=ffmpegStdinRfd, stdout=ffmpegStdoutWfd)
+  ], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-  stopPipingFfpmegStdin = utils.pipeStream(rawVideoInputStream, ffmpegStdinStream)
-  stopPipingFfpmegStdout = utils.pipeStream(ffmpegStdoutStream, mp4OutputStream)
+  stopPipingFfpmegStdin = utils.pipeStream(rawVideoInputStream, ffpmegProcess.stdin)
+  stopPipingFfpmegStdout = utils.pipeStream(ffpmegProcess.stdout, mp4OutputStream)
 
   def waitForConverting():
     while True:
@@ -74,26 +74,40 @@ rawVideoStream = io.BytesIO()
 mp4VideoStream = io.BytesIO()
 
 try:
-  logging.info("Starting threads")
-  waitTillEnd1 = feedRawVideoStream(rawVideoStream)
-  waitTillEnd2 = convertToMp4(rawVideoStream, mp4VideoStream)
-  waitTillEnd3 = writeMp4ToFile(mp4VideoStream)
+  writeStream, readStream = utils.createCircleStream()
 
-  # dummy code, k su dung khi co stream tu picamera
-  print('waiting for reading file')
-  waitTillEnd1(False)
+  # logging.info("Starting threads")
+  # waitTillEnd1 = feedRawVideoStream(rawVideoStream)
+  waitTillEnd1 = feedRawVideoStream(writeStream)
 
-  print('Read file done, waiting for convering')
+  while True:
+    bytes = readStream.read(102400)
+    if bytes:
+      logging.info("read2 100: %d", len(bytes))
+    else:
+      logging.info("read2")
+      break
 
-  waitTillEnd2(False)
+  logging.info("done")
 
-  print('Convering done, waiting for writing')
+  # waitTillEnd2 = convertToMp4(rawVideoStream, mp4VideoStream)
+  # waitTillEnd3 = writeMp4ToFile(mp4VideoStream)
 
-  mp4VideoStream.close()
-  waitTillEnd3(False)
+  # # dummy code, k su dung khi co stream tu picamera
+  # print('waiting for reading file')
+  # waitTillEnd1(False)
+
+  # print('Read file done, waiting for convering')
+
+  # waitTillEnd2(False)
+
+  # print('Convering done, waiting for writing')
+
+  # mp4VideoStream.close()
+  # waitTillEnd3(False)
 
 except KeyboardInterrupt:
   print 'a'
-  waitTillEnd1(True)
-  waitTillEnd2(True)
-  waitTillEnd3(True)
+  # waitTillEnd1(True)
+  # waitTillEnd2(True)
+  # waitTillEnd3(True)
