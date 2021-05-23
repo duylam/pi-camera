@@ -7,6 +7,7 @@ Enable video calls in Pi
 
 1. OS: Raspbian GNU/Linux 8 (jessie)
 1. Pi model: Pi 3 Model B
+1. [Install Camera module](https://projects.raspberrypi.org/en/projects/getting-started-with-picamera)
 1. Run `install-ffmpeg.sh`
 1. Use Python 2.7.9
 

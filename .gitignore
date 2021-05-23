@@ -1,2 +1,9 @@
 *.fifo
+
+# python
 *.pyc
+
+# vim editor
+*.swp
+*.swo
+
