@@ -1,9 +1,6 @@
-# pi-meeting
-
 Enable video calls in Pi
 
-
-## Setup Pi
+# Setup Pi
 
 1. OS: Raspbian GNU/Linux 8 (jessie)
 1. Pi model: Pi 3 Model B
@@ -11,7 +8,7 @@ Enable video calls in Pi
 1. Run `install-ffmpeg.sh`
 1. Use Python 2.7.9
 
-## Development
+# Development
 
 - If coding on another machine (laptop), use `rsync` to copy files to Pi:
 
@@ -23,7 +20,14 @@ do
 done
 ```
 
-## Other mis notes
+# Standalone PoC
+
+## Record camera
+
+1. Make sure the Camera hardware and software is installed
+1. Run `python poc/camera.py`
+
+# Other mis notes
 
 1.a Convert video to raw h264 codec
 ffmpeg -i Untitled.mov -an -vcodec h264 -f h264 outfile.h264
@@ -50,3 +54,5 @@ do
   rsync -avz --exclude '.git*' . pi@pi:/home/pi/pi-meeting/
   sleep 2
 done
+
+

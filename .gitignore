@@ -1,4 +1,5 @@
 *.fifo
+*.h264
 
 # python
 *.pyc
