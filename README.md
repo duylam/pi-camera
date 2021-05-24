@@ -10,15 +10,7 @@ Enable video calls in Pi
 
 # Development
 
-- If coding on another machine (laptop), use `rsync` to copy files to Pi:
-
-```bash
-for (( ; ; ))
-do
-  rsync -avz --exclude '.git*' . <username on pi>@<pi IP>:/path/
-  sleep 2
-done
-```
+To run: `python src/app.py`
 
 # Standalone PoC
 
