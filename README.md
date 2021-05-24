@@ -22,10 +22,15 @@ done
 
 # Standalone PoC
 
+*Make sure the Camera hardware and software is installed*
+
 ## Record camera
 
-1. Make sure the Camera hardware and software is installed
-1. Run `python poc/camera.py`
+Run `python poc/camera.py`
+
+## Wrap mp4 containter
+
+Run `bash poc/wrap-mp4-container/run.sh`
 
 # Other mis notes
 
