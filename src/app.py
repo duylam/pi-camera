@@ -69,7 +69,7 @@ def convertToMp4(rawVideoInputStream, mp4OutputStream):
 
 logging.basicConfig(
   format="%(asctime)s: %(message)s",
-  level=logging.INFO,
+  level=logging.DEBUG,
   datefmt="%H:%M:%S")
 
 rawVideoStream = io.BytesIO()
@@ -133,10 +133,18 @@ def main():
     sleep(1) # make sure the buffer not empty
     while True:
       bytes = buffer_stream.read()
+
+      logging.info("read from camera len: %d", len(bytes))
+
       if bytes: ffmpeg_process.stdin.write(bytes)
 
       bytes = ffmpeg_process.stdout.read()
+
+      logging.info("read ffmpeg len: %d", len(bytes))
+
       if bytes: mp4_file.write(bytes)
+
+      logging.info("count: %d", count)
 
       if count > 3:
         break
@@ -145,7 +153,7 @@ def main():
         sleep(5)
   finally:
     camera.stop_recording()
-    if ffpmegProcess.poll() is not None: ffpmegProcess.kill()
+    if ffmpeg_process.poll() is not None: ffmpeg_process.kill()
     mp4_file.close()
 
 if __name__ == "__main__":
