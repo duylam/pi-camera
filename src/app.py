@@ -116,43 +116,48 @@ mp4VideoStream = io.BytesIO()
 
 
 def main():
+  KB = 1024
   camera = picamera.PiCamera()
+  mp4_file = io.open('./final.mp4', mode='wb', buffering=100*KB)
   ffmpeg_process = subprocess.Popen([
-    'ffmpeg', '-v', 'debug', '-i', '-' # receive .h264 from stdin
+    'ffmpeg', '-i', '-' # receive .h264 from stdin
     ,'-codec', 'copy', '-movflags', 'frag_keyframe+empty_moov', # todo: temp fix for using .mov file only
     '-f','mp4','pipe:1' # write .mp4 to stdout
-  ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=5*1024*1024)
-  mp4_file = io.open('./final.mp4', mode='wb', buffering=1024*1024)
+  ], stdin=subprocess.PIPE, stdout=mp4_file, bufsize=5*1024*KB)
 
   try:
     count = 1
 
-    # See doc https://picamera.readthedocs.io/en/release-1.13/api_streams.html#circulario
-    buffer_stream = picamera.CircularIO(10*1024*1024)
-    camera.start_recording(buffer_stream, format='h264')
-    sleep(1) # make sure the buffer not empty
+    buffer_stream_1 = io.BufferRandom(io.BytesIO(), buffer_size=10*1024*KB)
+    buffer_stream_2 = io.BufferRandom(io.BytesIO(), buffer_size=10*1024*KB)
+
+    # Set the quantization parameter which will cause the video encoder to use VBR (variable bit-rate) encoding.
+    # This can be considerably more efficient especially in mostly static scenes (which can be important when recording to memory)
+    camera.start_recording(buffer_stream_1, format='h264', quantization=23)
     while True:
-      bytes = buffer_stream.read()
+      camera.wait_recording(1)
+      if buffer_stream_1.tell() > 0:
+        buffer_stream_2.seek(0)
+        camera.split_recording(buffer_stream_2)
+        bytes = buffer_stream_1.read()
+      elif buffer_stream_2.tell() > 0:
+        buffer_stream_1.seek(0)
+        camera.split_recording(buffer_stream_1)
+        bytes = buffer_stream_2.read()
 
       logging.info("read from camera len: %d", len(bytes))
-
       if bytes: ffmpeg_process.stdin.write(bytes)
-
-      bytes = ffmpeg_process.stdout.read()
-
-      logging.info("read ffmpeg len: %d", len(bytes))
-
-      if bytes: mp4_file.write(bytes)
 
       logging.info("count: %d", count)
 
-      if count > 3:
+      if count > 2:
         break
       else:
-        ++count
-        sleep(5)
+        count = count + 1
+        sleep(1)
   finally:
     camera.stop_recording()
+    camera.close()
     if ffmpeg_process.poll() is not None: ffmpeg_process.kill()
     mp4_file.close()
 
