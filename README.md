@@ -24,6 +24,10 @@ Run `python poc/camera.py`
 
 Run `bash poc/wrap-mp4-container/run.sh`
 
+## Check video format
+
+Run `bash poc/check-video-format/run.sh`
+
 # Other mis notes
 
 1.a Convert video to raw h264 codec
