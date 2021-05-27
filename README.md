@@ -10,15 +10,7 @@ Enable video calls in Pi
 
 # Development
 
-- If coding on another machine (laptop), use `rsync` to copy files to Pi:
-
-```bash
-for (( ; ; ))
-do
-  rsync -avz --exclude '.git*' . <username on pi>@<pi IP>:/path/
-  sleep 2
-done
-```
+To run: `python src/app.py`
 
 # Standalone PoC
 
@@ -31,6 +23,10 @@ Run `python poc/camera.py`
 ## Wrap mp4 containter
 
 Run `bash poc/wrap-mp4-container/run.sh`
+
+## Check video format
+
+Run `bash poc/check-video-format/run.sh`
 
 # Other mis notes
 
