@@ -5,8 +5,8 @@ A Web frontend app (VueJS) displays video from `pi-camera-client` in WebRTC prot
 <!-- toc -->
 
 - [1. Development setup](#1-development-setup)
-- [3. Coding workflow](#3-coding-workflow)
-- [4. Other commands](#4-other-commands)
+- [2. Coding workflow](#2-coding-workflow)
+- [3. Other commands](#3-other-commands)
 
 <!-- tocstop -->
 
