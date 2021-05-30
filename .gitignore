@@ -1,6 +1,9 @@
-*.fifo
+# Temp files for coding
 *.h264
 *.mp4
+
+# Temp dir for installing dependencies
+vendors/
 
 # python
 *.pyc
