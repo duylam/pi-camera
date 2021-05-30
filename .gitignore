@@ -5,12 +5,12 @@
 *.mp4
 
 # Temp dir for installing dependencies
-/vendors
+vendors/
 
 # python, node
 *.pyc
-/node_modules
-/dist
+node_modules/
+dist/
 .env.local
 .env.*.local
 npm-debug.log*
