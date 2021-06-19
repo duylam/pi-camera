@@ -2,10 +2,11 @@ import threading
 import time
 import os
 import io
+import picamera
 
 class CircularStream {
-    def __init__(self, circular_io):
-      self.circular_io = circular_io
+    def __init__(self, buffer_size):
+      self.circular_io = picamera.CircularIO(buffer_size)
       self.num_bytes_written = 0
 
     #

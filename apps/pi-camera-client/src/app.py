@@ -17,8 +17,12 @@ logging.basicConfig(
 
 def main():
   KB = 1024
+  CAMERA_BUFFER_SIZE = 5*1024*KB
+  WEBRTC_VIDEO_TRACK_BUFFER_SIZE = CAMERA_BUFFER_SIZE*4
   VIDEO_RESOLUTION = (1024, 768) # (width, height)
   FRAME_RATE = 20
+
+  circular_stream = utils.CircularStream(buffer_size=WEBRTC_VIDEO_TRACK_BUFFER_SIZE)
   camera = picamera.PiCamera(resolution=VIDEO_RESOLUTION, framerate=FRAMERATE)
   mp4_file = io.open('./final.mp4', mode='wb', buffering=100*KB)
   ffmpeg_process = subprocess.Popen([
@@ -29,15 +33,12 @@ def main():
   ], stdin=subprocess.PIPE, stdout=mp4_file, bufsize=10*1024*KB)
 
   # See https://picamera.readthedocs.io/en/release-1.13/recipes2.html#splitting-to-from-a-circular-stream
-  camera_buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=5*1024*KB)
-  camera_buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=5*1024*KB)
+  camera_buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=CAMERA_BUFFER_SIZE)
+  camera_buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=CAMERA_BUFFER_SIZE)
+  video_track = MediaRelay().subscribe(MediaPlayer(circular_stream))
 
-  relay = MediaRelay()
-  video_track = relay.subscribe(MediaPlayer(file_like, format))
-
-VIDEO_RESOLUTION
-
-  FRAMERATE)
+#VIDEO_RESOLUTION
+  #FRAMERATE)
 
   try:
     count = 1
@@ -70,7 +71,7 @@ VIDEO_RESOLUTION
 
       logging.debug("Camera produces %d bytes", len(video_bytes))
 
-      if video_bytes: ffmpeg_process.stdin.write(video_bytes)
+      if video_bytes: circular_stream.write_(video_bytes)
 
       if count > 2:
         break
@@ -96,5 +97,19 @@ VIDEO_RESOLUTION
       mp4_file.close()
 
 if __name__ == "__main__":
-  main()
+  #  main()
+  buffer = picamera.CircularIO(4)
+  buffer.write(b"\x0a\x0b\x0c")
+  buffer.seek(0)
+  content = buffer.read()
+  logging.debug(content)
 
+  buffer.write(b"\x0e\x0e\x0f\x0f")
+  buffer.seek(-4, 1)
+  content = buffer.readall()
+  logging.debug(content)
+
+  buffer.write(b"\x0e\x0f")
+
+  content = buffer.readall()
+  logging.debug(content)
