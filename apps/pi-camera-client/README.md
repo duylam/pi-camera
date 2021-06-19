@@ -27,8 +27,8 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 1. Run `bash scripts/dev-setup.sh` which installs Python3 and other system dependencies
 1. (Optional) Use [venv](https://docs.python.org/3/library/venv.html) to create virtual environment. Quick steps as below
 
-  - Create directory for the virtual environment (ignored by git):  `$ python3 -m venv --copies --clear ./penv`
-  - To enter the environment: `$ source ./penv/bin/activate`
+  - Create directory for the virtual environment (ignored by git):  `$ python3 -m venv --copies --clear ./.penv`
+  - To enter the environment: `$ source ./.penv/bin/activate`
   - To exit the environment: `$ deactivate`
 
 # 3. Coding workflow
@@ -39,7 +39,9 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 # 4. Other commands
 
 1. To update TOC in README, run `md_toc -p github README.md`
-1. To install new Python libraries: `pip3 install --user <name>`. And then manually update `requirements.txt` 
+1. To install new Python libraries: `pip3 install --user <name>`. To add to `requirements.txt`
+  - Get the version of new installed package: `pip3 show <name>`
+  - And then manually update `requirements.txt` 
 
 # 4. Other Proof of Concept app
 

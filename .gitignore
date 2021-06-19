@@ -6,7 +6,7 @@
 
 # Temp dir for installing dependencies
 vendors/
-penv/ # python virtual environment
+.penv/
 
 # python, node
 *.pyc
