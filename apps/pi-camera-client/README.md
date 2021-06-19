@@ -29,7 +29,7 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 
   - Create directory for the virtual environment (ignored by git):  `$ python3 -m venv --copies --clear ./penv`
   - To enter the environment: `$ source ./penv/bin/activate`
-  - To exit the environment: `$ deactive`
+  - To exit the environment: `$ deactivate`
 
 # 3. Coding workflow
 
