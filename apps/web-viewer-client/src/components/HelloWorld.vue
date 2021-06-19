@@ -1,11 +1,12 @@
 <template>
   <div>
+    Env: {{ env1 }}<br />
     <video ref="domVideoElement" playsinline autoplay></video>
     Remote video width: {{ remoteVideoWidth }}px<br/>
     Remote video height: {{ remoteVideoHeight }}px<br/>
     <p>
-      Logs</br>
-      <textarea ref="logTextArea" /></textarea>
+      Logs<br />
+      <textarea ref="logTextArea"></textarea>
     </p>
   </div>
 </template>
@@ -13,11 +14,6 @@
 <script>
 export default {
   name: 'HelloWorld',
-  data: {
-    remoteVideoWidth: 0,
-    remoteVideoHeight: 0,
-    peerConnection: null
-  },
   props: {
     msg: String
   },
@@ -33,19 +29,19 @@ export default {
     this.peerConnection = new RTCPeerConnection(configuration);
     this.log('Created peer cnnection object');
 
-    this.peerConnection.addEventListener('icecandidate', function(e) => {
+    this.peerConnection.addEventListener('icecandidate', function(e) {
       that.log('On icecandidate event: addIceCandidate success');
       that.log(`On icecandidate event: ${e.candidate ? e.candidate.candidate : '(null)'}`);
     });
     this.log('Registered "icecandidate" event on peer cnnection');
 
-    this.peerConnection.addEventListener('iceconnectionstatechange', function(e) => {
+    this.peerConnection.addEventListener('iceconnectionstatechange', function(e) {
       that.log(`On iceconnectionstatechange event: ICE state: ${that.peerConnection.iceConnectionState}`);
       that.log(`On iceconnectionstatechange event: ICE state change event: ${e}`);
     });
     this.log('Registered "iceconnectionstatechange" event on peer cnnection');
 
-    this.peerConnection.addEventListener('track', function(e) => {
+    this.peerConnection.addEventListener('track', function(e) {
       if (that.$refs.domVideoElement.srcObject !== e.streams[0]) {
         that.$refs.domVideoElement.srcObject = e.streams[0]
         that.log('PeerCon received remote stream');
@@ -54,13 +50,20 @@ export default {
     this.log('Registered "track" event on peer cnnection');
 
     // Set remote offer to peer: role for signaling
-
     // https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/pc1/index.html
     // https://github.com/node-webrtc/node-webrtc-examples/blob/master/examples/viewer/client.js
   },
   methods: {
     log: function(msg) {
       this.$refs.logTextArea.value = this.$refs.logTextArea.value + msg + '\n';
+    }
+  },
+  data: function () {
+    return {
+      env1: process.env.VUE_APP_WEBRTC_ICE_SERVERS ,
+      remoteVideoWidth: 0,
+      remoteVideoHeight: 0,
+      peerConnection: null
     }
   }
 }

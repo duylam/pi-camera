@@ -3,11 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "update-toc": "markdown-toc -i README.md",
-    "vue": "vue",
-    "lint": "vue-cli-service lint"
+    "build": "NODE_ENV=production vue-cli-service build",
+    "update-toc": "markdown-toc -i README.md"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
