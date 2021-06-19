@@ -1,6 +1,6 @@
 A Python app captures H264 video from Camera module, wrap with MP4 container and sends to TURN server in WebRTC protocol
 
-# Table of Contents
+**Table of Content**
 
 <!--TOC-->
 
@@ -25,6 +25,11 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 # 2. Development setup 
 
 1. Run `bash scripts/dev-setup.sh` which installs Python3 and other system dependencies
+1. (Optional) Use [venv](https://docs.python.org/3/library/venv.html) to create virtual environment. Quick steps as below
+
+  - Create directory for the virtual environment (ignored by git):  `$ python3 -m venv --copies --clear ./penv`
+  - To enter the environment: `$ source ./penv/bin/activate`
+  - To exit the environment: `$ deactive`
 
 # 3. Coding workflow
 
