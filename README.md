@@ -4,7 +4,6 @@ The software is made from 03 components:
 
 - A Raspberry Pi with Camera module runs `pi-camera-client` app
 - A web frontend by `web-viewer-client` app for users to watch camera in Raspberry Pi
-- A TURN server relay for connecting `web-viewer-client` and `pi-camera-client`
 
 Consult README in `apps` folder for how to run in local machine (required Raspberry Pi 3+ with Camera module)
 
