@@ -60,10 +60,10 @@ class CircularStream:
 
     # We don't want to expose write() so that aiortc.MediaPlayer thinks this is read-only stream
     def write_(self, byte_s):
-        bytes_written = self._circular_io.write(byte_s)
-
-        if self._num_bytes_written < self._buffer_size:
-            self._num_bytes_written = min(self._num_bytes_written + bytes_written, self._buffer_size)
+        if byte_s is not None and len(byte_s) > 0:
+            bytes_written = self._circular_io.write(byte_s)
+            if self._num_bytes_written < self._buffer_size:
+                self._num_bytes_written = min(self._num_bytes_written + bytes_written, self._buffer_size)
 
     def close():
        self._circular_io.close()
