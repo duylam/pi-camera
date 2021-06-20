@@ -6,8 +6,8 @@ import picamera
 
 class CircularStream:
     def __init__(self, buffer_size):
+        self._buffer_size = buffer_size
         self._circular_io = picamera.CircularIO(buffer_size)
-        self._circular_io.seek(0)
         self._num_bytes_written = 0
 
     #
@@ -18,14 +18,36 @@ class CircularStream:
     def writable(self):
         return False
 
-    def read(self, n=-1):
+    def read(self):
         # Simulate the behavior from
         # https://docs.python.org/3/library/io.html#io.RawIOBase.read
         if self._num_bytes_written == 0:
           return None
-        self._circular_io.seek(-1 * self._num_bytes_written, 1)
+
+        bytes_read = None
+        num_bytes_to_read = self._num_bytes_written
+        if self._num_bytes_written <= self._buffer_size:
+            # The buffer contain entire data written till now
+            self._circular_io.seek(0)
+        else:
+            # The entire data written till now exceeds the buffer size (oldest part
+            # has been overrided). So the amount of data to read is entire buffer, but
+            # we need to find the position to begin reading
+            # See below diagram for buffer state
+            # At t0, write 02 bytes: [ _ _ P _ ] The position P is for next writing
+            # At t1, write 03 bytes: [ _ P _ _ ] Our beginning of reading position is P 
+            num_bytes_to_read = self._buffer_size
+
+            if self._circular_io.tell() == self._buffer_size:
+                self._circular_io.seek(0)
+            else:
+                self._circular_io.seek(1, 1)
+
+        bytes_read = self._circular_io.read1(num_bytes_to_read)
+
+        self._circular_io.seek(0)
         self._num_bytes_written = 0
-        return self._circular_io.read1(n)
+        return bytes_read
 
     #
     # END
