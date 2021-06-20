@@ -43,6 +43,8 @@ def main():
   try:
     count = 1
 
+    pc = RTPeerConnection()
+
     # quality: For the 'h264' format, use values between 10 and 40 where 10 is extremely
     # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
     # encoding).
@@ -95,6 +97,8 @@ def main():
     if not mp4_file.closed:
       logging.debug("Closing file")
       mp4_file.close()
+
+    circular_stream.close()
 
 if __name__ == "__main__":
   #  main()
