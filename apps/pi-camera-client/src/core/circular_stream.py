@@ -7,7 +7,9 @@ import picamera
 class CircularStream:
     def __init__(self, buffer_size):
         self._buffer_size = buffer_size
+        self._last_position = buffer_size - 1
         self._circular_io = picamera.CircularIO(buffer_size)
+        self._read_position = 0
         self._num_bytes_written = 0
 
     #
@@ -18,28 +20,38 @@ class CircularStream:
     def writable(self):
         return False
 
-    def read(self):
-        # Simulate the behavior from
+    def read(self, n=-1):
+        # Fulfill the behavior from
         # https://docs.python.org/3/library/io.html#io.RawIOBase.read
         if self._num_bytes_written == 0:
           return None
 
         bytes_read = None
-        if self._num_bytes_written <= self._buffer_size:
-            # The buffer contain entire data written till now
-            self._circular_io.seek(0)
-            bytes_read = self._circular_io.read(self._num_bytes_written)
+        bytes_to_read = None
+        write_position = self._circular_io.tell()
+
+        if n > 0:
+            bytes_to_read = min(n, self._num_bytes_written)
         else:
-            # The entire data written till now exceeds the buffer size (oldest part
-            # has been overrided). So the amount of data to read is entire buffer
-            num_bytes_to_read_till_buffer_end = self._buffer_size - self._circular_io.tell()
-            bytes_read_end = self._circular_io.read(num_bytes_to_read_till_buffer_end)
+            bytes_to_read = self._num_bytes_written
+
+        position_after_read = self._read_position + bytes_to_read - 1
+        is_within_buffer = position_after_read <= self._last_position
+
+        self._circular_io.seek(self._read_position, 0)
+        if is_within_buffer:
+            bytes_read = self._circular_io.read(bytes_to_read)
+        else:
+            # Need to read twice: till end of buffer AND beginning of buffer
+            bytes_read_begin = self._circular_io.read()
             self._circular_io.seek(0)
-            bytes_read_begin = self._circular_io.read(self._buffer_size - len(bytes_read_end))
+            bytes_read_end = self._circular_io.read(bytes_to_read - len(bytes_read_begin))
             bytes_read = bytes_read_begin + bytes_read_end
 
-        self._circular_io.seek(0)
-        self._num_bytes_written = 0
+        self._read_position = self._circular_io.tell()
+        self._num_bytes_written -= bytes_to_read
+        self._circular_io.seek(write_position, 0)
+
         return bytes_read
 
     #
@@ -48,7 +60,10 @@ class CircularStream:
 
     # We don't want to expose write() so that aiortc.MediaPlayer thinks this is read-only stream
     def write_(self, byte_s):
-        self._num_bytes_written = self._num_bytes_written + self._circular_io.write(byte_s)
+        bytes_written = self._circular_io.write(byte_s)
+
+        if self._num_bytes_written < self._buffer_size:
+            self._num_bytes_written = min(self._num_bytes_written + bytes_written, self._buffer_size)
 
     def close():
        self._circular_io.close()
