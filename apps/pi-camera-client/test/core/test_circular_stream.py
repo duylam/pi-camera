@@ -15,8 +15,8 @@ class TestCircularStream(unittest.TestCase):
         stream = CircularStream(buffer_size=3)
         stream.write_(b'\x01\x02\x03\x04\x05')
         read_bytes = stream.read()
-        self.assertEqual(len(read_bytes), 2)
-        self.assertEqual(read_bytes, b'\x04\x05')
+        self.assertEqual(len(read_bytes), 3)
+        self.assertEqual(read_bytes, b'\x03\x04\x05')
 
     def test_read_when_writing_once(self):
         True
