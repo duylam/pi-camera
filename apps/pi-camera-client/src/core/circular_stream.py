@@ -32,22 +32,11 @@ class CircularStream:
         else:
             # The entire data written till now exceeds the buffer size (oldest part
             # has been overrided). So the amount of data to read is entire buffer
-            num_bytes_to_read = self._buffer_size
             num_bytes_to_read_till_buffer_end = self._buffer_size - self._circular_io.tell()
             bytes_read_end = self._circular_io.read(num_bytes_to_read_till_buffer_end)
             self._circular_io.seek(0)
             bytes_read_begin = self._circular_io.read(self._buffer_size - len(bytes_read_end))
             bytes_read = bytes_read_begin + bytes_read_end
-
-
-            # Find the position to begin reading which is after .tell(), see below
-            # At t0, write 02 bytes: [ _ _ P _ ] The position P is for next writing
-            # At t1, write 03 bytes: [ _ P _ _ ] Our beginning of reading position is P 
-            #if self._circular_io.tell() == 0:
-            #    self._circular_io.seek(0, 2)
-            #else:
-            #    self._circular_io.seek(-1, 1)
-
 
         self._circular_io.seek(0)
         self._num_bytes_written = 0
