@@ -1,6 +1,6 @@
 import unittest
 
-from core import CircularStream
+from lib import CircularStream
 
 class TestCircularStream(unittest.TestCase):
     def test_write_below_buffer_size(self):

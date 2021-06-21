@@ -6,8 +6,6 @@ import os
 import subprocess
 import time
 from camera import Camera
-from aiortc import RTCPeerConnection, RTCSessionDescription
-from aiortc.contrib.media import MediaPlayer, MediaRelay
 
 logging.basicConfig(
   format="%(asctime)s [%(levelname)s]: %(message)s",
@@ -18,7 +16,7 @@ def main():
   WEBRTC_VIDEO_TRACK_BUFFER_SIZE = CAMERA_BUFFER_SIZE*4
 
   camera = Camera()
-  mp4_file = io.open('./final.mp4', mode='wb', buffering=100*KB)
+  peer_connections = set()
 
   # See https://picamera.readthedocs.io/en/release-1.13/recipes2.html#splitting-to-from-a-circular-stream
   video_track = MediaRelay().subscribe(MediaPlayer(circular_stream))
@@ -42,7 +40,10 @@ k     video_frame_info = camera.frame
 
       logging.debug("Camera produces %d bytes", len(video_bytes))
 
-      if video_bytes: True
+      if video_bytes:
+        peer_connections = set(filter(lambda c: not c.closed), peer_connections)
+        for pc in peer_connections:
+          pc.send_video_bytes(video_bytes)
 
       if count > 2:
         break
@@ -54,10 +55,6 @@ k     video_frame_info = camera.frame
     # Release resources, the order is matter
     camera.end()
     logging.debug("Camera closed")
-
-    if not mp4_file.closed:
-      logging.debug("Closing file")
-      mp4_file.close()
 
 if __name__ == "__main__":
   main()

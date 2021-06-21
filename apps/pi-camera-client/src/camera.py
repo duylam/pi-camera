@@ -5,7 +5,7 @@ CAMERA_BUFFER_SIZE = 5*1024*const.KB
 VIDEO_RESOLUTION = (1024, 768) # (width, height)
 FRAME_RATE = 20
 
-class Camera {
+class Camera:
     def __init__(self, video_resolution = VIDEO_RESOLUTION, framerate = FRAME_RATE):
         self._pi_camera = picamera.PiCamera(resolution=VIDEO_RESOLUTION, framerate=FRAMERATE)
         self._pi_camera_buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=CAMERA_BUFFER_SIZE)
@@ -46,6 +46,4 @@ class Camera {
     def end(self):
         if self._pi_camera.recording: self._pi_camera.stop_recording()
         self._pi_camera.close()
-
-}
 
