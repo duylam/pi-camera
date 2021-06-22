@@ -33,7 +33,7 @@ def main():
 
       # Read frame info.
       # See https://picamera.readthedocs.io/en/release-1.13/api_camera.html#pivideoframe
-k     video_frame_info = camera.frame
+      video_frame_info = camera.frame
 
       # Loop list of webrtc to append video bytes
       video_bytes = camera.get_video_bytes()
@@ -41,7 +41,13 @@ k     video_frame_info = camera.frame
       logging.debug("Camera produces %d bytes", len(video_bytes))
 
       if video_bytes:
-        peer_connections = set(filter(lambda c: not c.closed), peer_connections)
+        closed_peer_connections = filter(lambda c: c.closed, peer_connections)
+
+        # Most of times that the loop is running, connections are usually stay openning. So to
+        # avoid to create new set unneccessaily, we keep the set as is if no connection closing
+        if len(closed_peer_connections) > 0:
+            peer_connections = peer_connections ^ closed_peer_connections
+
         for pc in peer_connections:
           pc.send_video_bytes(video_bytes)
 

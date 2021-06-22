@@ -11,6 +11,7 @@ vendors/
 # python, node
 *.pyc
 node_modules/
+schema_python/
 dist/
 .env.local
 .env.*.local
