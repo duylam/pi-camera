@@ -38,7 +38,7 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 
 # 4. Other commands
 
-1. To compile new schema to .py: `bash scripts/compile.sh`
+1. To compile new schema to .py: `bash scripts/compile_proto.sh`
 1. (in virtual environment) To update TOC in README, run `md_toc -p github README.md`
 1. To run unit test: `bash scripts/test.sh`
 1. (in virtual env) To run specific test method: `python3 -m unittest test.core.test_circular_stream.TestCircularStream.test_read_over_num_when_availale`

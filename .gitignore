@@ -12,6 +12,7 @@ vendors/
 *.pyc
 node_modules/
 schema_python/
+schema_node/
 dist/
 .env.local
 .env.*.local

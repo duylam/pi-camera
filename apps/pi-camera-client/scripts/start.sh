@@ -6,6 +6,6 @@ if [ ! -z "$VIRTUAL_ENV" ]; then
   python_cmd=./.penv/bin/python
 fi
 
-bash scripts/compile.sh
+bash scripts/compile_proto.sh
 $python_cmd src/app.py
 

@@ -34,6 +34,7 @@ A web server app to forward WebRTC Signaling messages for clients
 # 3. Other commands
 
 1. To update TOC in README, run `npm run update-toc`.
+1. To compile .proto to nodejs, run `npm run compile-proto`.
 1. To install new library: `npm i -D <name>`.
 1. To build to frontend package: `npm run build`.
 
