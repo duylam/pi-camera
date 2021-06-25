@@ -1,17 +1,23 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 service RtcSignaling {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc Subscribe(stream RtcSignalingResponse) returns (stream RtcSignalingRequest) {}
 }
 
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
+message RtcSignalingRequest {
+  oneof type {
+    google.protobuf.Empty create_offer = 1; 
+    string answer_offer = 2; 
+  }
 }
 
-// The response message containing the greetings
-message HelloReply {
-  string message = 1;
+message RtcSignalingResponse {
+  oneof type {
+    string create_offer = 1; 
+    google.protobuf.Empty answer_offer = 2; 
+    google.protobuf.Empty noop = 3;
+  }
 }
 
