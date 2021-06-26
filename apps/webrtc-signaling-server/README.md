@@ -13,7 +13,7 @@ A web server app to forward WebRTC Signaling messages for clients
 # 1. Development setup 
 
 1. Install NodeJS v14
-1. (Optional) Necessary environment variables are declared in `.env` file with default value. For overriding them, copy it to `.env.local` and modify it (ignored by git)
+1. Necessary environment variables are declared in `.env` file with default value. For overriding them, copy it to `.env.local` and modify it (ignored by git)
 
 # 2. Coding workflow
 

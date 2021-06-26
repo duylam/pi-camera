@@ -10,6 +10,7 @@ message RtcSignalingRequest {
   oneof type {
     google.protobuf.Empty create_offer = 1; 
     string answer_offer = 2; 
+    google.protobuf.Empty noop = 3;
   }
 }
 
@@ -17,7 +18,6 @@ message RtcSignalingResponse {
   oneof type {
     string create_offer = 1; 
     google.protobuf.Empty answer_offer = 2; 
-    google.protobuf.Empty noop = 3;
   }
 }
 
