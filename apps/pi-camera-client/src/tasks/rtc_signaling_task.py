@@ -12,6 +12,7 @@ async def run(request_queue: queue.Queue, response_queue: queue.Queue):
             try:
                 request_stream = grpc_client.Subscribe(send_response())
                 async for req in request_streams:
+                    continue if req.noop is not None
                     if request_queue.full():
                         logging.warning('request_qeuue is full, skip the message')
                         continue

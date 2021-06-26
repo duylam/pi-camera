@@ -1,25 +1,56 @@
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaPlayer, MediaRelay
 
-from lib import CircularStream
+from lib import CircularStream, config
 
 # See the doc at https://aiortc.readthedocs.io/en/stable
 class RtcConnection:
-  def __init__(self, resolution, framerate, buffer_size):
+  def __init__(self, resolution=config.VIDEO_RESOLUTION, framerate=config.FRAMERATE, buffer_size, client_id):
     self._circular_stream = CircularStream(buffer_size=buffer_size)
-    self._closed = False
+    self._video_resolution = resolution
+    self._framerate = framerate
+    self._answer_confirmed = False
+
+    # See https://aiortc.readthedocs.io/en/stable/api.html#webrtc
+    self._pc = RTCPeerConnection()
+    self._client_id = client_id
 
   @property
   def closed(self):
-    return self._closed
+      match self._pc.connectionState:
+          case ('closed' | 'failed'):
+              return True
+          case _:
+              return False
+
+  @property
+  def client_id(self):
+    return self._client_id
+
+  @property
+  def ready(self):
+    return self._answer_confirmed and self._pc.signalingState == 'stable'
 
   def send_video_bytes(self, video_bytes):
 
-  def create_offer(self):
+  async def create_offer(self):
+    vwidth, vheight = self._video_resolution
+    options = {
+        "framerate": self._framerate,
+        "video_size": "{0}x{1}".format(vwidth, vheight)
+    }
+    camera = MediaPlayer(self._circular_stream, options=options)
+    self._pc.addTrack(MediaRelay().subscribe(camera.video))
+    sdp = await self._pc.createOffer()
+    await self._pc.setLocalDescripion(sdp)
+    return self._pc.localDescription
 
+  async def receive_answer(self, answer):
+      await self._pc.setRemoteDescription(answer)
 
-
-  def receive_answer(self, answer):
+  def confirm_answer(self):
+    self._answer_confirmed = True
 
   def close(self):
-    self._closed = True
+    self._pc.close()
+

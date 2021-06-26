@@ -5,9 +5,7 @@ import os
 import subprocess
 import time
 from queue import Queue
-from camera_task import run as run_camera
-from rtc_signaling_task import run as run_rtc_signaling
-from main_task import run as run_main
+from tasks import run_camera,run_rtc_signaling,run_main
 
 logging.basicConfig(
   format="%(asctime)s [%(levelname)s]: %(message)s",
@@ -18,7 +16,6 @@ async def main():
   new_video_chunk_queue = Queue(20)
   incoming_rtc_request_queue = Queue(50)
   outgoing_rtc_response_queue = Queue(50)
-  WEBRTC_VIDEO_TRACK_BUFFER_SIZE = CAMERA_BUFFER_SIZE*4
 
   # See https://picamera.readthedocs.io/en/release-1.13/recipes2.html#splitting-to-from-a-circular-stream
   video_track = MediaRelay().subscribe(MediaPlayer(circular_stream))

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 python_cmd=./.penv/bin/python
-if [ -f "$python_cmd" ] ; then
+if [ ! -f "$python_cmd" ] ; then
   python_cmd=python3
 
   if ! command -v $python_cmd &> /dev/null; then

@@ -38,12 +38,12 @@ class PiClient {
 
   send(grpcRequest, onResponse) {
     if (!this._call) {
-      onResponse(new Error('No client connected'));
+      onResponse && onResponse(new Error('No client connected'));
       return this._debug.log('Warn: no client connected, skip send()!');
     }
 
     this._call.write(grpcRequest);
-    this._onResponses.push(onResponse);
+    onResponse && this._onResponses.push(onResponse);
   }
 
   end() {
@@ -93,9 +93,11 @@ function startRestService() {
       done = fulfill;
     });
     ctx.response.type = 'text/plain; charset=utf-8';
+    const callId = ctx.request.query.cid;
 
     if (path.startsWith('/offer')) {
       const req = new grpcModels.RtcSignalingRequest();
+      req.setCallId(callId);
       req.setCreateOffer(grpcModels.google.protobuf.Empty());
       piClient.send(req, function (e, result) {
         if (e) {
@@ -109,8 +111,9 @@ function startRestService() {
         done();
       });
     }
-    else if (path.startsWith('/answer')) {
+    else if (ctx.request.method === 'POST' && path.startsWith('/answer')) {
       const req = new grpcModels.RtcSignalingRequest();
+      req.setCallId(callId);
       req.setAnswerOffer(ctx.request.body);
       piClient.send(req, function (e, result) {
         if (e) {
@@ -123,6 +126,14 @@ function startRestService() {
 
         done();
       });
+    }
+    else if (ctx.request.method === 'PUT' && path.startsWith('/answer')) {
+      const req = new grpcModels.RtcSignalingRequest();
+      req.setCallId(callId);
+      req.setConfirmAnswer(grpcModels.google.protobuf.Empty());
+      piClient.send(req);
+      ctx.response.status = 200;
+      done();
     }
     else {
       ctx.response.status = 400;
