@@ -1,8 +1,10 @@
 #!/bin/bash
 
+set -e # stop on error
+
 python_cmd=python3
 
-if [ ! -z "$VIRTUAL_ENV" ]; then
+if [ -z "$VIRTUAL_ENV" ]; then
   python_cmd=./.penv/bin/python
 fi
 

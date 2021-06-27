@@ -27,9 +27,7 @@ validate
 rm -rf $out_dir || true
 mkdir $out_dir
 
-pip_cmd="`dirname $python3_cmd`"/pip
-
-$pip_cmd show grpcio-tools &>/dev/null || $pip_cmd install -r $schema_root_dir/requirements.txt
+$python3_cmd -m pip show grpcio-tools &>/dev/null || $python3_cmd -m pip install -r $schema_root_dir/requirements.txt
  
 $python3_cmd -m grpc_tools.protoc -I $schema_root_dir/src/ --python_out=$out_dir --grpc_python_out=$out_dir $schema_root_dir/src/rtc_signaling_service.proto
 
