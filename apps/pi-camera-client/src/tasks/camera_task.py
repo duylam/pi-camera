@@ -8,10 +8,10 @@ async def run(outgoing_video_chunk_queue):
 
   # Read frame info.
   # See https://picamera.readthedocs.io/en/release-1.13/api_camera.html#pivideoframe
-  video_frame_info = camera.frame
+  #video_frame_info = camera.frame
 
   while True:
-    camera.capture_recording():
+    camera.capture_recording()
     video_bytes = camera.get_video_bytes()
     if video_bytes:
         if outgoing_video_chunk_queue.full():

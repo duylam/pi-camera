@@ -18,7 +18,7 @@ A web server app to forward WebRTC Signaling messages for clients
 # 2. Coding workflow
 
 1. To install libraries: `npm ci`
-1. To start server app with hot-reloads: `npm run dev`
+1. To start server app with hot-reloads: `npm start`
 
 # 3. Other commands
 

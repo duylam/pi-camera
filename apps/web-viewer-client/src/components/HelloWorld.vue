@@ -1,6 +1,7 @@
 <template>
   <div>
     Env: {{ env1 }}<br />
+    <button v-on:click="start">Start/Restart</button><br />
     <video ref="domVideoElement" playsinline autoplay></video>
     Remote video width: {{ remoteVideoWidth }}px<br/>
     Remote video height: {{ remoteVideoHeight }}px<br/>
@@ -22,65 +23,68 @@ export default {
   },
   async mounted() {
     const that = this;
-
     this.$refs.domVideoElement.addEventListener('loadedmetadata', function() {
       that.remoteVideoWidth = this.videoWidth;
       that.remoteVideocHeight = this.videoHeight;
     });
-
-    console.log(config.WEBRTC_ICE_SERVER_URLS)
-
-    const configuration = {};
-    if (!$.isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
-      configuration.iceServers = [{
-        urls: config.WEBRTC_ICE_SERVER_URLS
-      }];
-    }
-
-    this.peerConnection = new RTCPeerConnection(configuration);
-    this.log('Created peer cnnection object');
-
-    this.peerConnection.addEventListener('icecandidate', function(e) {
-      that.log('On icecandidate event: addIceCandidate success');
-      that.log(`On icecandidate event: ${e.candidate ? e.candidate.candidate : '(null)'}`);
-    });
-    this.log('Registered "icecandidate" event on peer cnnection');
-
-    this.peerConnection.addEventListener('iceconnectionstatechange', function(e) {
-      that.log(`On iceconnectionstatechange event: ICE state: ${that.peerConnection.iceConnectionState}`);
-      that.log(`On iceconnectionstatechange event: ICE state change event: ${e}`);
-    });
-    this.log('Registered "iceconnectionstatechange" event on peer cnnection');
-
-    this.peerConnection.addEventListener('track', function(e) {
-      if (that.$refs.domVideoElement.srcObject !== e.streams[0]) {
-        that.$refs.domVideoElement.srcObject = e.streams[0]
-        that.log('PeerCon received remote stream');
-      }
-    });
-    this.log('Registered "track" event on peer cnnection');
-
-    try {
-      const response = await this.$http.post('offer');
-      await this.peerConnection.setRemoteDescription(response.body);
-
-      const localOffer = await this.peerConnection.createOffer({offerToReceiveAudio: false, voiceActivityDetection: false});
-      await this.peerConnection.setLocalDescription(localOffer);
-      await this.$http.post('answer', this.peerConnection.localDescription.sdp);
-      await this.$http.put('answer');
-    }
-    catch (e) {
-        this.log('Error on sending offer');
-        this.log(e.message);
-    }
-
-    // Set remote offer to peer: role for signaling
-    // https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/pc1/index.html
-    // https://github.com/node-webrtc/node-webrtc-examples/blob/master/examples/viewer/client.js
   },
   methods: {
     log: function(msg) {
       this.$refs.logTextArea.value = this.$refs.logTextArea.value + msg + '\n';
+    },
+    start: async function() {
+      const that = this;
+      const configuration = {};
+      if (!$.isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
+        configuration.iceServers = [{
+          urls: config.WEBRTC_ICE_SERVER_URLS
+        }];
+      }
+
+      if (this.peerConnection) {
+        this.peerConnection.close();
+      }
+
+      this.peerConnection = new RTCPeerConnection(configuration);
+      this.log('Created peer cnnection object');
+
+      this.peerConnection.addEventListener('icecandidate', function(e) {
+        that.log('On icecandidate event: addIceCandidate success');
+        that.log(`On icecandidate event: ${e.candidate ? e.candidate.candidate : '(null)'}`);
+      });
+      this.log('Registered "icecandidate" event on peer cnnection');
+
+      this.peerConnection.addEventListener('iceconnectionstatechange', function(e) {
+        that.log(`On iceconnectionstatechange event: ICE state: ${that.peerConnection.iceConnectionState}`);
+        that.log(`On iceconnectionstatechange event: ICE state change event: ${e}`);
+      });
+      this.log('Registered "iceconnectionstatechange" event on peer cnnection');
+
+      this.peerConnection.addEventListener('track', function(e) {
+        if (that.$refs.domVideoElement.srcObject !== e.streams[0]) {
+          that.$refs.domVideoElement.srcObject = e.streams[0]
+          that.log('PeerCon received remote stream');
+        }
+      });
+      this.log('Registered "track" event on peer cnnection');
+
+      try {
+        const response = await this.$http.post('offer');
+        await this.peerConnection.setRemoteDescription(response.body);
+
+        const localOffer = await this.peerConnection.createOffer({offerToReceiveAudio: false, voiceActivityDetection: false});
+        await this.peerConnection.setLocalDescription(localOffer);
+        await this.$http.post('answer', this.peerConnection.localDescription.sdp);
+        await this.$http.put('answer');
+      }
+      catch (e) {
+          this.log('Error on sending offer');
+          this.log(e.message);
+      }
+
+      // Set remote offer to peer: role for signaling
+      // https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/pc1/index.html
+      // https://github.com/node-webrtc/node-webrtc-examples/blob/master/examples/viewer/client.js
     }
   },
   data: function () {

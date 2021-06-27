@@ -28,7 +28,7 @@ async def main():
         run_camera(outgoing_video_chunk_queue=new_video_chunk_queue),
         run_rtc_signaling(
             request_queue=incoming_rtc_request_queue,
-            response_queue=outgoing_rtc_response_queue
+            response_queue=outgoing_rtc_response_queue,
             out_video_chunk_queue=new_video_chunk_queue
         ),
         run_main(
