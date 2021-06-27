@@ -69,13 +69,14 @@ export default {
       this.log('Registered "track" event on peer cnnection');
 
       try {
-        const response = await this.$http.post('offer');
+        const reqOption = {params: {cid: Date.now()}};
+        const response = await this.$http.post('offer', reqOption);
         await this.peerConnection.setRemoteDescription(response.body);
 
         const localOffer = await this.peerConnection.createOffer({offerToReceiveAudio: false, voiceActivityDetection: false});
         await this.peerConnection.setLocalDescription(localOffer);
-        await this.$http.post('answer', this.peerConnection.localDescription.sdp);
-        await this.$http.put('answer');
+        await this.$http.post('answer', this.peerConnection.localDescription.sdp, reqOption);
+        await this.$http.put('answer', reqOption);
       }
       catch (e) {
           this.log('Error on sending offer');
