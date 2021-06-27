@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import config from '@/lib/config';
+import * as config from '../lib/config';
 import $ from 'lodash';
 
 export default {
@@ -20,13 +20,15 @@ export default {
   props: {
     msg: String
   },
-  mounted() {
+  async mounted() {
     const that = this;
 
     this.$refs.domVideoElement.addEventListener('loadedmetadata', function() {
       that.remoteVideoWidth = this.videoWidth;
       that.remoteVideocHeight = this.videoHeight;
     });
+
+    console.log(config.WEBRTC_ICE_SERVER_URLS)
 
     const configuration = {};
     if (!$.isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
@@ -58,6 +60,20 @@ export default {
     });
     this.log('Registered "track" event on peer cnnection');
 
+    try {
+      const response = await this.$http.post('offer');
+      await this.peerConnection.setRemoteDescription(response.body);
+
+      const localOffer = await this.peerConnection.createOffer({offerToReceiveAudio: false, voiceActivityDetection: false});
+      await this.peerConnection.setLocalDescription(localOffer);
+      await this.$http.post('answer', this.peerConnection.localDescription.sdp);
+      await this.$http.put('answer');
+    }
+    catch (e) {
+        this.log('Error on sending offer');
+        this.log(e.message);
+    }
+
     // Set remote offer to peer: role for signaling
     // https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/pc1/index.html
     // https://github.com/node-webrtc/node-webrtc-examples/blob/master/examples/viewer/client.js
@@ -69,7 +85,7 @@ export default {
   },
   data: function () {
     return {
-      env1: config.WEBRTC_ICE_SERVERS ,
+      env1: config.WEBRTC_ICE_SERVER_URLS,
       remoteVideoWidth: 0,
       remoteVideoHeight: 0,
       peerConnection: null

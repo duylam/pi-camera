@@ -1,8 +1,18 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import VueResource from 'vue-resource';
+import {createApp} from 'vue';
+import axios from 'axios';
+import VueAxios from 'vue-axios';
 
-Vue.use(VueResource);
+import App from './App.vue';
+import * as config from './lib/config';
 
-createApp(App).mount('#app');
+const Vue = createApp(App);
+
+// Loads plugins
+Vue.use(VueAxios, axios)
+
+// Configures plugins
+Vue.axios.defaults.baseURL = config.REST_API_BASE_URL;
+
+// Initializes the app
+Vue.mount('#app');
 

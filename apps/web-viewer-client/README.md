@@ -18,7 +18,7 @@ A Web frontend app (VueJS) displays video from `pi-camera-client` in WebRTC prot
 # 2. Coding workflow
 
 1. To install libraries: `npm ci`
-1. To start frontend app with hot-reloads: `npx vue-cli-service serve`
+1. To start frontend app with hot-reloads: `npm start`
 
 # 3. Other commands
 
