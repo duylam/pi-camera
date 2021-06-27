@@ -1,4 +1,4 @@
-import logging, io
+import logging, io, asyncio
 import picamera
 from lib import const, config
 
@@ -8,10 +8,11 @@ class Camera:
         self._pi_camera_buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._pi_camera_buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._captured_video_bytes = None
-
-        self._video_bufferred_file = io.BufferedReader(io.open('/tmp/clip.h264', mode='rb', buffering=2048), buffer_size=config.CAMERA_BUFFER_SIZE)
+        
+        self._video_bufferred_file = io.BufferedReader(io.open('/home/pi/clip.h264', mode='rb', buffering=2048), buffer_size=config.CAMERA_BUFFER_SIZE)
 
     def start(self):
+        True
         # quality: For the 'h264' format, use values between 10 and 40 where 10 is extremely
         # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
         # encoding).
@@ -21,8 +22,8 @@ class Camera:
     def buffer_size(self):
         return CAMERA_BUFFER_SIZE
 
-    def capture_recording(self):
-        sleep(2)
+    async def capture_recording(self):
+        await asyncio.sleep(2)
         self._captured_video_bytes = self._video_bufferred_file.read(2048)
         return
 
@@ -42,11 +43,13 @@ class Camera:
 
         current_stream.seek(0)
         self._captured_video_bytes = current_stream.read()
+        await asyncio.sleep(0.5) # let's other task to run
 
     def get_video_bytes(self):
         return self._captured_video_bytes
 
     def end(self):
+        True
         #if self._pi_camera.recording: self._pi_camera.stop_recording()
         #self._pi_camera.close()
 

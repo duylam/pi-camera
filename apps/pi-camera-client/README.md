@@ -34,7 +34,8 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 # 3. Coding workflow
 
 1. To install Python libraries: `./.penv/bin/pip install -r requirements.txt`
-1. To start app: `bash scripts/start.sh`
+1. Compile proto to .py: `bash scripts/compile_proto.sh`
+1. To start app: `./.penv/bin/python src/app.py`
 
 # 4. Other commands
 

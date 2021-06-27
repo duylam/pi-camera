@@ -5,7 +5,7 @@ from lib import CircularStream, config
 
 # See the doc at https://aiortc.readthedocs.io/en/stable
 class RtcConnection:
-  def __init__(self, resolution=config.VIDEO_RESOLUTION, framerate=config.FRAMERATE, buffer_size, client_id):
+  def __init__(self, buffer_size, client_id, resolution=config.VIDEO_RESOLUTION, framerate=config.FRAMERATE):
     self._circular_stream = CircularStream(buffer_size=buffer_size)
     self._video_resolution = resolution
     self._framerate = framerate
@@ -17,11 +17,7 @@ class RtcConnection:
 
   @property
   def closed(self):
-      match self._pc.connectionState:
-          case ('closed' | 'failed'):
-              return True
-          case _:
-              return False
+    return self._pc.connectionState == 'closed' or self._pc.connectionState == 'failed'
 
   @property
   def client_id(self):
@@ -32,12 +28,13 @@ class RtcConnection:
     return self._answer_confirmed and self._pc.signalingState == 'stable'
 
   def send_video_bytes(self, video_bytes):
+    True
 
   async def create_offer(self):
     vwidth, vheight = self._video_resolution
     options = {
-        "framerate": self._framerate,
-        "video_size": "{0}x{1}".format(vwidth, vheight)
+      "framerate": self._framerate,
+      "video_size": "{0}x{1}".format(vwidth, vheight)
     }
     camera = MediaPlayer(self._circular_stream, options=options)
     self._pc.addTrack(MediaRelay().subscribe(camera.video))
