@@ -29,7 +29,8 @@ mkdir $out_dir
 
 $python3_cmd -m pip show grpcio-tools &>/dev/null || $python3_cmd -m pip install -r $schema_root_dir/requirements.txt
  
-$python3_cmd -m grpc_tools.protoc -I $schema_root_dir/src/ --python_out=$out_dir --grpc_python_out=$out_dir $schema_root_dir/src/rtc_signaling_service.proto
+cd $schema_root_dir/src
+$python3_cmd -m grpc_tools.protoc -I . --python_out=$out_dir --grpc_python_out=$out_dir rtc_signaling_service.proto
 
 echo "Finished!"
 

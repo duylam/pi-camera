@@ -1,9 +1,11 @@
+import sys, os
+
+# The proto compiler for Python language is designed for Python 2 import mechanics.
+# Per the comment at https://github.com/protocolbuffers/protobuf/issues/1491#issuecomment-772720912,
+# the change in sys.path below is a workaroud for Python 3
+sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
+
 import logging, asyncio
-import sys
-import io
-import os
-import subprocess
-import time
 from queue import Queue
 from tasks import run_camera,run_rtc_signaling,run_main
 
@@ -17,19 +19,12 @@ async def main():
   incoming_rtc_request_queue = Queue(50)
   outgoing_rtc_response_queue = Queue(50)
 
-  # See https://picamera.readthedocs.io/en/release-1.13/recipes2.html#splitting-to-from-a-circular-stream
-  video_track = MediaRelay().subscribe(MediaPlayer(circular_stream))
-
-#VIDEO_RESOLUTION
-  #FRAMERATE)
-
   try:
     await asyncio.gather(
         run_camera(outgoing_video_chunk_queue=new_video_chunk_queue),
         run_rtc_signaling(
             request_queue=incoming_rtc_request_queue,
-            response_queue=outgoing_rtc_response_queue,
-            out_video_chunk_queue=new_video_chunk_queue
+            response_queue=outgoing_rtc_response_queue
         ),
         run_main(
             new_video_chunk_queue=new_video_chunk_queue,

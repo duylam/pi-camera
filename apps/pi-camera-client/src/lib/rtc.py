@@ -5,7 +5,7 @@ from lib import CircularStream, config
 
 # See the doc at https://aiortc.readthedocs.io/en/stable
 class RtcConnection:
-  def __init__(self, resolution=config.VIDEO_RESOLUTION, framerate=config.FRAMERATE, buffer_size, client_id):
+  def __init__(self, buffer_size, client_id, resolution=config.VIDEO_RESOLUTION, framerate=config.FRAMERATE):
     self._circular_stream = CircularStream(buffer_size=buffer_size)
     self._video_resolution = resolution
     self._framerate = framerate

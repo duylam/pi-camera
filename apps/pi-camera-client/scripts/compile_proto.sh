@@ -11,5 +11,6 @@ if [ ! -f "$python_cmd" ] ; then
   fi
 fi
 
-bash ../../schema/scripts/compile_python.sh "`realpath $(which $python_cmd)`" ./src/schema_python
+out_dir="./src/schema_python"
+bash ../../schema/scripts/compile_python.sh "`realpath $(which $python_cmd)`" "`realpath $out_dir`"
 

@@ -22,7 +22,8 @@ async def run(
             while not new_video_chunk_queue.empty():
                 video_bytes = new_video_chunk_queue.get()
                 for pc in peer_connections:
-                  pc.send_video_bytes(video_bytes) if pc.ready
+                  if pc.ready:
+                    pc.send_video_bytes(video_bytes)
 
             while not incoming_rtc_request_queue.empty():
                 request = incoming_rtc_request_queue.get()
@@ -34,7 +35,7 @@ async def run(
                     response.create_offer = offer
 
                     try:
-                        outgoing_rtc_response_queue.put(response, timeout=2):
+                        outgoing_rtc_response_queue.put(response, timeout=2)
                         peer_connections.add(cn)
                     except:
                         logging.exception('Error writing to signaling response queue')
@@ -48,7 +49,7 @@ async def run(
                     response.answer_offer = empty_pb2.Empty()
 
                     try:
-                        outgoing_rtc_response_queue.put(response, timeout=2):
+                        outgoing_rtc_response_queue.put(response, timeout=2)
                     except:
                         logging.exception('Error writing to signaling response queue')
                 elif request.confirm_answer:

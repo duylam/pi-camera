@@ -1,4 +1,4 @@
-import logging, io
+import logging, io, time
 import picamera
 from lib import const, config
 
@@ -9,7 +9,7 @@ class Camera:
         self._pi_camera_buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._captured_video_bytes = None
         
-        self._video_bufferred_file = io.BufferedReader(io.open('/tmp/clip.h264', mode='rb', buffering=2048), buffer_size=config.CAMERA_BUFFER_SIZE)
+        self._video_bufferred_file = io.BufferedReader(io.open('/home/pi/clip.h264', mode='rb', buffering=2048), buffer_size=config.CAMERA_BUFFER_SIZE)
 
     def start(self):
         True
@@ -23,7 +23,7 @@ class Camera:
         return CAMERA_BUFFER_SIZE
 
     def capture_recording(self):
-        sleep(2)
+        time.sleep(2)
         self._captured_video_bytes = self._video_bufferred_file.read(2048)
         return
 
