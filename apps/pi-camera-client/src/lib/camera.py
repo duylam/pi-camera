@@ -8,10 +8,11 @@ class Camera:
         self._pi_camera_buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._pi_camera_buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._captured_video_bytes = None
-
+        
         self._video_bufferred_file = io.BufferedReader(io.open('/tmp/clip.h264', mode='rb', buffering=2048), buffer_size=config.CAMERA_BUFFER_SIZE)
 
     def start(self):
+        True
         # quality: For the 'h264' format, use values between 10 and 40 where 10 is extremely
         # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
         # encoding).
@@ -47,6 +48,7 @@ class Camera:
         return self._captured_video_bytes
 
     def end(self):
+        True
         #if self._pi_camera.recording: self._pi_camera.stop_recording()
         #self._pi_camera.close()
 
