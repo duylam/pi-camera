@@ -7,17 +7,19 @@
     "update-toc": "markdown-toc -i README.md"
   },
   "devDependencies": {
+    "@vue/cli": "^4.5.13",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.0.0",
-    "markdown-toc": "^1.2.0",
-    "@vue/cli": "^4.5.13",
     "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
     "core-js": "^3.6.5",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^7.0.0",
+    "lodash": "^4.17.21",
+    "markdown-toc": "^1.2.0",
     "vue": "^3.0.0",
-    "eslint-plugin-vue": "^7.0.0"
+    "vue-resource": "^1.5.3"
   },
   "eslintConfig": {
     "root": true,

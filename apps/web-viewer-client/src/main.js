@@ -1,4 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import VueResource from 'vue-resource';
 
-createApp(App).mount('#app')
+Vue.use(VueResource);
+
+createApp(App).mount('#app');
+

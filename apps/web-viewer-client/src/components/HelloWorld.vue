@@ -12,6 +12,9 @@
 </template>
 
 <script>
+import config from '@/lib/config';
+import $ from 'lodash';
+
 export default {
   name: 'HelloWorld',
   props: {
@@ -26,6 +29,12 @@ export default {
     });
 
     const configuration = {};
+    if (!$.isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
+      configuration.iceServers = [{
+        urls: config.WEBRTC_ICE_SERVER_URLS
+      }];
+    }
+
     this.peerConnection = new RTCPeerConnection(configuration);
     this.log('Created peer cnnection object');
 
@@ -60,7 +69,7 @@ export default {
   },
   data: function () {
     return {
-      env1: process.env.VUE_APP_WEBRTC_ICE_SERVERS ,
+      env1: config.WEBRTC_ICE_SERVERS ,
       remoteVideoWidth: 0,
       remoteVideoHeight: 0,
       peerConnection: null
