@@ -1,4 +1,4 @@
-import logging, io, time
+import logging, io, asyncio
 import picamera
 from lib import const, config
 
@@ -22,8 +22,8 @@ class Camera:
     def buffer_size(self):
         return CAMERA_BUFFER_SIZE
 
-    def capture_recording(self):
-        time.sleep(2)
+    async def capture_recording(self):
+        await asyncio.sleep(2)
         self._captured_video_bytes = self._video_bufferred_file.read(2048)
         return
 
@@ -43,6 +43,7 @@ class Camera:
 
         current_stream.seek(0)
         self._captured_video_bytes = current_stream.read()
+        await asyncio.sleep(0.5) # let's other task to run
 
     def get_video_bytes(self):
         return self._captured_video_bytes

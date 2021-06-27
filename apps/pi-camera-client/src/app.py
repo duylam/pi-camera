@@ -20,6 +20,7 @@ async def main():
   outgoing_rtc_response_queue = Queue(50)
 
   try:
+    logging.debug('Starting tasks')
     await asyncio.gather(
         run_camera(outgoing_video_chunk_queue=new_video_chunk_queue),
         run_rtc_signaling(
