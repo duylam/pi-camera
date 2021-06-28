@@ -7,7 +7,7 @@
     Remote video height: {{ remoteVideoHeight }}px<br/>
     <p>
       Logs<br />
-      <textarea ref="logTextArea"></textarea>
+      <textarea cols="100" rows="50" ref="logTextArea"></textarea>
     </p>
   </div>
 </template>
@@ -42,7 +42,12 @@ export default {
       }
 
       if (this.peerConnection) {
-        this.peerConnection.close();
+        try {
+          this.peerConnection.close();
+        }
+        catch (e) {
+          console.error(e);
+        }
       }
 
       this.peerConnection = new RTCPeerConnection(configuration);
@@ -70,7 +75,7 @@ export default {
 
       try {
         const reqOption = {params: {cid: Date.now()}};
-        const response = await this.$http.post('offer', reqOption);
+        const response = await this.$http.post('offer', null, reqOption);
         await this.peerConnection.setRemoteDescription(response.body);
 
         const localOffer = await this.peerConnection.createOffer({offerToReceiveAudio: false, voiceActivityDetection: false});

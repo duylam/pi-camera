@@ -13,7 +13,13 @@ A web server app to forward WebRTC Signaling messages for clients
 # 1. Development setup 
 
 1. Install NodeJS v14
-1. Necessary environment variables are declared in `.env` file with default value. For overriding them, copy it to `.env.local` and modify it (ignored by git)
+1. Consul necessary environment variables in `src/lib/config.js`
+1. (Optional) Create `.env.local` file to set value for them in local (ignored by git). The content is like
+
+```bash
+PI_MEETING_REST_PORT=4001
+PI_MEETING_HEARTBEAT_INTERVAL_MS=5000
+```
 
 # 2. Coding workflow
 

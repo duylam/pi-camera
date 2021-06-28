@@ -44,6 +44,7 @@ class PiClient {
     }
 
     this._call.write(grpcRequest);
+    this._debug.log('sent to pi');
     onResponse && this._onResponses.push(onResponse);
   }
 
@@ -58,7 +59,7 @@ class PiClient {
   }
 
   _onCallData(msg) {
-    this._debug.log('Sending stream message to callbacks');
+    this._debug.log('Dispatching message to callbacks');
     for (const cb of this._onResponses) {
       cb(null, msg);
     } 
@@ -75,7 +76,7 @@ function main() {
 
   setInterval(function () {
     piClient.sendNoop();
-  }, config.HeartBeatIntevalMs);
+  }, config.HeartBeatIntervalMs);
 }
 
 function startRestService() {
@@ -107,7 +108,12 @@ function startRestService() {
           ctx.response.status = 500;
         }
         else {
-          ctx.response.body = result.getCreateOffer();
+          if (result.error) {
+            ctx.response.status = 500;
+          }
+          else {
+            ctx.response.body = result.getCreateOffer();
+          }
         }
 
         done();
@@ -123,7 +129,12 @@ function startRestService() {
           ctx.response.status = 500;
         }
         else {
-          ctx.response.status = 200;
+          if (result.error) {
+            ctx.response.status = 500;
+          }
+          else {
+            ctx.response.status = 200;
+          }
         }
 
         done();
