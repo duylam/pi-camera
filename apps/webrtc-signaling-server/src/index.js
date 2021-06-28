@@ -1,4 +1,5 @@
 const Koa = require('koa');
+const logger = require('koa-logger');
 const $ = require('lodash');
 const http = require('http');
 const koaBody = require('koa-body');
@@ -86,6 +87,7 @@ function startRestService() {
     maxAge: 3600
   }));
   app.use(koaBody());
+  app.use(logger());
   app.use(function(ctx) {
     const path = ctx.request.path;
     let done = $.noop;
@@ -155,19 +157,22 @@ function startRestService() {
 function startGrpcService() {
   const debug = d('grpc');
   const server = new grpc.Server();
-  server.addService(grpcServices.RtcSignalingService, {subscribe: subscribeImplementation});
+  server.addService(grpcServices.RtcSignalingService, {subscribe: subscribeImplementation(debug)});
   server.bindAsync(`0.0.0.0:${config.GrpcPort}`, grpc.ServerCredentials.createInsecure(), () => {
     server.start();
     debug.log(`GRPC listens on ${config.GrpcPort}`);
   });
 }
 
-function subscribeImplementation(call) {
-  call.on('error', function (e) {
-    debug.error('GRPC stream of subscribe() error', e);
-    piClient.end();
-  });
-  piClient.start(call);
+function subscribeImplementation(debug) {
+  return function (call) {
+    debug.log('New Pi client connected');
+    call.on('error', function (e) {
+      debug.error('GRPC stream of subscribe() error', e);
+      piClient.end();
+    });
+    piClient.start(call);
+  }
 }
 
 
