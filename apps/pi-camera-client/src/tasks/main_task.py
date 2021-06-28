@@ -1,17 +1,18 @@
-import logging
+import logging, asyncio
 from google.protobuf import empty_pb2
 from schema_python import rtc_signaling_service_pb2
 from lib import RtcConnection, config
-
-WEBRTC_VIDEO_TRACK_BUFFER_SIZE = config.CAMERA_BUFFER_SIZE*4
 
 async def run(
   new_video_chunk_queue,
   incoming_rtc_request_queue,
   outgoing_rtc_response_queue
 ):
+    WEBRTC_VIDEO_TRACK_BUFFER_SIZE = config.CAMERA_BUFFER_SIZE*4
+
     logging.debug('Starting Main task')
     peer_connections = set([])
+    sleep_in_second = config.MAIN_TASK_INTERVAL_DURATION / 1000
     try:
         logging.debug('Begin loop of forwarding video chunk to peer connections')
         while True:
@@ -34,10 +35,14 @@ async def run(
                 client_id = request.call_id
                 if request.create_offer:
                     logging.debug("Received new create_offer request, creating new peer connection with id %s", client_id)
-                    cn = RtcConnection(buffer_size=WEBRTC_VIDEO_TRACK_BUFFER_SIZE, client_id = client_id)
-                    offer = await cn.create_offer()
                     response = rtc_signaling_service_pb2.RtcSignalingResponse()
-                    response.create_offer = offer
+                    try:
+                      cn = RtcConnection(buffer_size=WEBRTC_VIDEO_TRACK_BUFFER_SIZE, client_id = client_id)
+                      offer = await cn.create_offer()
+                      response.create_offer = offer
+                    except:
+                      response.error = True
+                      logging.exception('Error on creating RTC connection')
 
                     try:
                         outgoing_rtc_response_queue.put(response, timeout=2)
@@ -47,12 +52,16 @@ async def run(
                         logging.exception('Error writing to signaling response queue')
                 elif request.answer_offer:
                     logging.debug("Received answer request for peer connection with id %s", client_id)
+                    response = rtc_signaling_service_pb2.RtcSignalingResponse()
                     for c in peer_connections:
                         if c.client_id == client_id:
+                          try:
                             await c.receive_answer(request.answer_offer)
                             break
+                          except:
+                            response.error = True
+                            logging.exception('Error on procesing RTC answer')
 
-                    response = rtc_signaling_service_pb2.RtcSignalingResponse()
                     response.answer_offer = empty_pb2.Empty()
 
                     try:
@@ -67,6 +76,7 @@ async def run(
                             c.confirm_answer()
                             break
 
+            await asyncio.sleep(sleep_in_second)
 
     except:
         logging.exception('Error on main task, skip to next loop')

@@ -18,6 +18,8 @@ message RtcSignalingRequest {
 }
 
 message RtcSignalingResponse {
+  bool error = 1;
+
   oneof type {
     string create_offer = 10; 
     google.protobuf.Empty answer_offer = 11; 

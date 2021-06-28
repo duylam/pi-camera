@@ -2,7 +2,8 @@ import os
 from lib import const
 
 GRPC_HOSTNAME=os.getenv('PI_MEETING_GRPC_HOSTNAME', 'localhost')
-GRPC_PORT=os.getenv('PI_MEETING_GRPC_PORT', 4000)
+GRPC_PORT=int(os.getenv('PI_MEETING_GRPC_PORT', 4000))
+MAIN_TASK_INTERVAL_DURATION=int(os.getenv('PI_MEETING_MAIN_TASK_INTERVAL_DURATION_MS', 100))
 
 VIDEO_RESOLUTION = (1024, 768) # (width, height)
 FRAMERATE = 20

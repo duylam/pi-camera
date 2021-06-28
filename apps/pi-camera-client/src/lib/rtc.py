@@ -33,7 +33,7 @@ class RtcConnection:
   async def create_offer(self):
     vwidth, vheight = self._video_resolution
     options = {
-      "framerate": self._framerate,
+      "framerate": str(self._framerate),
       "video_size": "{0}x{1}".format(vwidth, vheight)
     }
     camera = MediaPlayer(self._circular_stream, options=options)
