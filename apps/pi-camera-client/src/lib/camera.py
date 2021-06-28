@@ -43,7 +43,10 @@ class Camera:
 
         current_stream.seek(0)
         self._captured_video_bytes = current_stream.read()
-        await asyncio.sleep(0.5) # let's other task to run
+
+        # let's other task to run, but don't sleep too long since it could make
+        # the captured video chunks exceeding the buffer
+        await asyncio.sleep(0.3) # let's other task to run
 
     def get_video_bytes(self):
         return self._captured_video_bytes

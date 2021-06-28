@@ -24,7 +24,7 @@ class CircularStream:
         # Fulfill the behavior from
         # https://docs.python.org/3/library/io.html#io.RawIOBase.read
         if self._num_bytes_written == 0:
-          return None
+          return b''
 
         bytes_read = None
         bytes_to_read = None
