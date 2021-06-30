@@ -31,6 +31,8 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
   - To enter the environment: `$ source ./.penv/bin/activate`
   - To exit the environment: `$ deactivate`
 
+3. See necessary environment at `src/lib/config.py`
+
 # 3. Coding workflow
 
 1. To install Python libraries: `./.penv/bin/pip install -r requirements.txt`

@@ -16,6 +16,19 @@ class CircularStream:
     # Implement the file-like reading interface that aiortc.MediaPlayer requires
     # See: https://github.com/PyAV-Org/PyAV/blob/9ac05d9ac902d71ecb2fe80f04dcae454008378c/av/container/core.pyx#L171
     #
+    def write(self, byte_s):
+        True
+
+    def seek(self, offset, whence):
+        True
+
+    def tell(self):
+        return 0
+
+    @property
+    def name(self):
+        return 'duylam'
+
     @property
     def writable(self):
         return False
@@ -51,6 +64,9 @@ class CircularStream:
         self._read_position = self._circular_io.tell()
         self._num_bytes_written -= bytes_to_read
         self._circular_io.seek(write_position, 0)
+
+        if bytes_read is None:
+            bytes_read = b''
 
         return bytes_read
 

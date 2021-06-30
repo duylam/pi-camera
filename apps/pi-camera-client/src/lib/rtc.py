@@ -28,7 +28,7 @@ class RtcConnection:
     return self._answer_confirmed and self._pc.signalingState == 'stable'
 
   def send_video_bytes(self, video_bytes):
-    True
+    self._circular_stream.write_(video_bytes)
 
   async def create_offer(self):
     vwidth, vheight = self._video_resolution
@@ -36,6 +36,9 @@ class RtcConnection:
       "framerate": str(self._framerate),
       "video_size": "{0}x{1}".format(vwidth, vheight)
     }
+
+    # https://pyav.org/docs/develop/cookbook/basics.html#parsing
+    # https://github.com/jlaine/aiortc/blob/6edad395544348702e124d8e3f31a44a2a04654c/src/aiortc/contrib/media.py#L154
     camera = MediaPlayer(self._circular_stream, options=options)
     self._pc.addTrack(MediaRelay().subscribe(camera.video))
     sdp = await self._pc.createOffer()
