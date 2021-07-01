@@ -3,3 +3,4 @@ aiortc==1.2.0
 grpcio==1.38.1
 protobuf==3.17.3
 picamera==1.13
+av==8.0.3

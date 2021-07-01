@@ -25,10 +25,10 @@ async def run(
                 peer_connections = peer_connections ^ closed_peer_connections
 
             while not new_video_chunk_queue.empty():
-                video_bytes = new_video_chunk_queue.get()
+                video_frames = new_video_chunk_queue.get()
                 for pc in peer_connections:
                   if pc.ready:
-                    pc.send_video_bytes(video_bytes)
+                    pc.append_video_frames(video_frames)
 
             while not incoming_rtc_request_queue.empty():
                 request = incoming_rtc_request_queue.get()

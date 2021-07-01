@@ -76,11 +76,14 @@ export default {
       try {
         const reqOption = {params: {cid: Date.now()}};
         const response = await this.$http.post('offer', null, reqOption);
-        await this.peerConnection.setRemoteDescription(response.body);
+        await this.peerConnection.setRemoteDescription({
+          type: 'offer',
+          scp: response.body
+        });
 
-        const localOffer = await this.peerConnection.createOffer({offerToReceiveAudio: false, voiceActivityDetection: false});
-        await this.peerConnection.setLocalDescription(localOffer);
-        await this.$http.post('answer', this.peerConnection.localDescription.sdp, reqOption);
+        const answerSessionDescription = await this.peerConnection.createAnswer();
+        await this.$http.post('answer', answerSessionDescription.sdp, reqOption);
+        await this.peerConnection.setLocalDescription(answerSessionDescription);
         await this.$http.put('answer', reqOption);
       }
       catch (e) {
