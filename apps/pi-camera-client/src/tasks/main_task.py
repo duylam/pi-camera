@@ -33,13 +33,17 @@ async def run(
             while not incoming_rtc_request_queue.empty():
                 request = incoming_rtc_request_queue.get()
                 client_id = request.call_id
-                if request.create_offer:
+                logging.debug('grpc request from queue')
+                logging.debug(request)
+                if request.HasField('create_offer'):
                     logging.debug("Received new create_offer request, creating new peer connection with id %s", client_id)
                     response = rtc_signaling_service_pb2.RtcSignalingResponse()
                     try:
-                      cn = RtcConnection(buffer_size=WEBRTC_VIDEO_TRACK_BUFFER_SIZE, client_id = client_id)
+                      cn = RtcConnection(client_id)
                       offer = await cn.create_offer()
                       response.create_offer = offer
+                    except KeyboardInterrupt:
+                      raise
                     except:
                       response.error = True
                       logging.exception('Error on creating RTC connection')
@@ -47,29 +51,35 @@ async def run(
                     try:
                         outgoing_rtc_response_queue.put(response, timeout=2)
                         logging.debug('Dispatched SDP of create_offer to queue')
-                        peer_connections.add(cn)
+                        if not response.error:
+                          peer_connections.add(cn)
+                    except KeyboardInterrupt:
+                      raise
                     except:
                         logging.exception('Error writing to signaling response queue')
-                elif request.answer_offer:
+                elif request.HasField('answer_offer'):
                     logging.debug("Received answer request for peer connection with id %s", client_id)
                     response = rtc_signaling_service_pb2.RtcSignalingResponse()
+                    response.answer_offer = empty_pb2.Empty()
                     for c in peer_connections:
                         if c.client_id == client_id:
                           try:
                             await c.receive_answer(request.answer_offer)
                             break
+                          except KeyboardInterrupt:
+                            raise
                           except:
                             response.error = True
                             logging.exception('Error on procesing RTC answer')
 
-                    response.answer_offer = empty_pb2.Empty()
-
                     try:
                         outgoing_rtc_response_queue.put(response, timeout=2)
                         logging.debug('Dispatched confirmation to queue')
+                    except KeyboardInterrupt:
+                      raise
                     except:
                         logging.exception('Error writing to signaling response queue')
-                elif request.confirm_answer:
+                elif request.HasField('confirm_answer'):
                     logging.debug("Received confirmation request for peer connection with id %s", client_id)
                     for c in peer_connections:
                         if c.client_id == client_id:
@@ -78,6 +88,8 @@ async def run(
 
             await asyncio.sleep(sleep_in_second)
 
+    except KeyboardInterrupt:
+      raise
     except:
         logging.exception('Error on main task, skip to next loop')
 
