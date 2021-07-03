@@ -20,9 +20,11 @@ class PiClient {
   }
 
   start(call) {
+    this.end();
+
     this._call = call;
     const boundOnCallData = this._onCallData.bind(this);
-    call.on('adta', boundOnCallData); 
+    call.on('data', boundOnCallData); 
 
     this._cleanupEvents = function () {
       call.removeListener('data', boundOnCallData);
@@ -43,9 +45,12 @@ class PiClient {
       return this._debug.log('Warn: no client connected, skip send()!');
     }
 
+    this._debug.log('sending to pi', this._onResponses.length);
+
     this._call.write(grpcRequest);
-    this._debug.log('sent to pi');
     onResponse && this._onResponses.push(onResponse);
+
+    this._debug.log('sent to pie', this._onResponses.length);
   }
 
   end() {
@@ -54,12 +59,13 @@ class PiClient {
     }
 
     this._cleanupEvents();
+    this._onResponses = [];
     this._call = null;
     this._debug.log('Detached on stream');
   }
 
   _onCallData(msg) {
-    this._debug.log('Dispatching message to callbacks');
+    this._debug.log('Dispatching message to callbacks', this._onResponses.length);
     for (const cb of this._onResponses) {
       cb(null, msg);
     } 
@@ -101,8 +107,9 @@ function startRestService() {
     if (path.startsWith('/offer')) {
       const req = new grpcModels.RtcSignalingRequest();
       req.setCallId(callId);
-      req.setCreateOffer(grpcModels.google.protobuf.Empty());
+      req.setCreateOffer(new grpcModels.google.protobuf.Empty());
       piClient.send(req, function (e, result) {
+        ctx.response.type = 'text/plain';
         if (e) {
           ctx.response.body = e.message;
           ctx.response.status = 500;
@@ -113,6 +120,7 @@ function startRestService() {
           }
           else {
             ctx.response.body = result.getCreateOffer();
+            debug.log('offer pi response', ctx.response.body);
           }
         }
 
@@ -124,6 +132,7 @@ function startRestService() {
       req.setCallId(callId);
       req.setAnswerOffer(ctx.request.body);
       piClient.send(req, function (e, result) {
+        ctx.response.type = 'text/plain';
         if (e) {
           ctx.response.body = e.message;
           ctx.response.status = 500;
@@ -143,12 +152,14 @@ function startRestService() {
     else if (ctx.request.method === 'PUT' && path.startsWith('/answer')) {
       const req = new grpcModels.RtcSignalingRequest();
       req.setCallId(callId);
-      req.setConfirmAnswer(grpcModels.google.protobuf.Empty());
+      req.setConfirmAnswer(new grpcModels.google.protobuf.Empty());
       piClient.send(req);
+      ctx.response.type = 'text/plain';
       ctx.response.status = 200;
       done();
     }
     else {
+      ctx.response.type = 'text/plain';
       ctx.response.status = 400;
       ctx.response.body = `Unknown path ${path}`;
       done();
