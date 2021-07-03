@@ -23,9 +23,13 @@ async def run(outgoing_video_chunk_queue: queue.Queue):
                                 outgoing_video_chunk_queue.get(block=True,timeout=1)
 
                             outgoing_video_chunk_queue.put_nowait(video_frames)
+                        except KeyboardInterrupt:
+                            raise
                         except:
                             logging.exception('Error on writing video chunk to queue, skip the chunk')
 
+            except KeyboardInterrupt:
+                raise
             except:
                 logging.exception('Camera has fatal error, re-initializing it')
 

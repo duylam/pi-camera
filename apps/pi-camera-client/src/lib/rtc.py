@@ -1,7 +1,7 @@
 import queue, asyncio
 
-from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, MediaStreamError, RTCSessionDescription
-from aiortc.contrib.media import MediaPlayer, MediaRelay
+from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, RTCSessionDescription
+from aiortc.mediastreams import MediaStreamError
 
 from lib import config
 
@@ -35,11 +35,11 @@ class RtcConnection:
     # https://github.com/jlaine/aiortc/blob/6edad395544348702e124d8e3f31a44a2a04654c/src/aiortc/contrib/media.py#L154
     self._pc.addTrack(self._camera_stream_track)
     session_description = await self._pc.createOffer()
-    await self._pc.setLocalDescripion(session_description)
-    return self._pc.localDescription.scp
+    await self._pc.setLocalDescription(session_description)
+    return self._pc.localDescription.sdp
 
   async def receive_answer(self, answer_sdp):
-      await self._pc.setRemoteDescription(RTCSessionDescription(answer_sdp, 'answer'))
+    await self._pc.setRemoteDescription(RTCSessionDescription(sdp=answer_sdp, type='answer'))
 
   def confirm_answer(self):
     self._answer_confirmed = True
@@ -48,6 +48,8 @@ class RtcConnection:
     self._pc.close()
 
 class CameraStreamTrack(MediaStreamTrack):
+    kind = "video"
+
     def __init__(self, frames_queue_size = 50):
         super().__init__()
         self._frames_queue = queue.Queue(maxsize=frames_queue_size)
