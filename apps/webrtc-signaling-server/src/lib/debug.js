@@ -7,6 +7,7 @@ module.exports = function (namespace) {
   const e = _debug(`${namespace} [error]`);
 
   return {
+    ns: namespace,
     log: d,
     error: e
   }

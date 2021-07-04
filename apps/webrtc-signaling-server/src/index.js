@@ -4,80 +4,16 @@ const $ = require('lodash');
 const http = require('http');
 const koaBody = require('koa-body');
 const cors = require('@koa/cors');
-const grpc = require('@grpc/grpc-js');
 const d = require('./lib/debug'); 
 const config = require('./lib/config'); 
-const grpcServices = require('./schema_node/rtc_signaling_service_grpc_pb');
-const grpcModels = require('./schema_node/rtc_signaling_service_pb');
+const GrpcServer = require('./lib/grpc-server'); 
 
-class PiClient {
-  constructor() {
-    this._call = null;
-    this._onResponses = [];
-    this._debug = d('pi-client');
-    this._NOOP_REQUEST = new grpcModels.RtcSignalingRequest();
-    this._NOOP_REQUEST.setNoop(new grpcModels.google.protobuf.Empty());
-  }
-
-  start(call) {
-    this.end();
-
-    this._call = call;
-    const boundOnCallData = this._onCallData.bind(this);
-    call.on('data', boundOnCallData); 
-
-    this._cleanupEvents = function () {
-      call.removeListener('data', boundOnCallData);
-    };
-
-    this._debug.log('Attached on stream');
-  }
-
-  sendNoop() {
-    if (this._call) {
-      this._call.write(this._NOOP_REQUEST);
-    }
-  }
-
-  send(grpcRequest, onResponse) {
-    if (!this._call) {
-      onResponse && onResponse(new Error('No client connected'));
-      return this._debug.log('Warn: no client connected, skip send()!');
-    }
-
-    this._call.write(grpcRequest);
-    onResponse && this._onResponses.push(onResponse);
-  }
-
-  end() {
-    if (!this._call) {
-      return this._debug.log('Warn: no client connected');
-    }
-
-    this._cleanupEvents();
-    this._onResponses = [];
-    this._call = null;
-    this._debug.log('Detached on stream');
-  }
-
-  _onCallData(msg) {
-    for (const cb of this._onResponses) {
-      cb(null, msg);
-    } 
-
-    this._onResponses = [];
-  } 
-}
 
 let piClient = new PiClient();
 
 function main() {
   startRestService();
   startGrpcService();
-
-  setInterval(function () {
-    piClient.sendNoop();
-  }, config.HeartBeatIntervalMs);
 }
 
 function startRestService() {
@@ -180,13 +116,12 @@ function startRestService() {
 }
 
 function startGrpcService() {
-  const debug = d('grpc');
-  const server = new grpc.Server();
-  server.addService(grpcServices.RtcSignalingService, {subscribe: subscribeImplementation(debug)});
-  server.bindAsync(`0.0.0.0:${config.GrpcPort}`, grpc.ServerCredentials.createInsecure(), () => {
-    server.start();
-    debug.log(`GRPC listens on ${config.GrpcPort}`);
-  });
+  const grpcServer = new GrpcServer();
+  grpcServer.start();
+
+  setInterval(function () {
+    grpcServer.sendHeartbeat();
+  }, config.HeartBeatIntervalMs);
 }
 
 function subscribeImplementation(debug) {
@@ -199,7 +134,6 @@ function subscribeImplementation(debug) {
     piClient.start(call);
   }
 }
-
 
 main();
 

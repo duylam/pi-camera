@@ -31,7 +31,8 @@ message RtcSignalingMessage {
   }
 
   message Response {
-    bool error = 1;
+    string client_id = 1;
+    bool error = 2;
   
     oneof type {
       string create_offer = 10; 
