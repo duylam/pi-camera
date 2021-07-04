@@ -1,5 +1,5 @@
 import grpc, logging, queue, asyncio
-from typing import AsyncIterable, Iterable
+from typing import Iterable
 from schema_python import rtc_signaling_service_pb2_grpc, rtc_signaling_service_pb2
 
 from lib import config
@@ -26,16 +26,11 @@ async def run(request_queue: queue.Queue, response_queue: queue.Queue):
             async with grpc.aio.insecure_channel(grpc_server_origin) as channel:
                 grpc_client = rtc_signaling_service_pb2_grpc.RtcSignalingStub(channel)
                 logging.debug('Created GRPC client stub')
-                # See sample code at https://github.com/grpc/grpc/blob/8db79e2e71306a6287ef4223bbf34be3a820e537/examples/python/route_guide/asyncio_route_guide_client.py#L107
                 request_stream = grpc_client.Subscribe(send_response())
                 logging.debug('Connected with Signaling server, begin receiving stream')
                 async for req in request_stream:
-                    # See https://developers.google.com/protocol-buffers/docs/reference/python-generated#singular-fields-proto2
-                    if req.HasField('noop'):
+                    if req.WhichOneof('type') == 'noop':
                         continue
-
-                    logging.debug('received from grpc request')
-                    logging.debug(req)
 
                     if request_queue.full():
                         logging.warning('request_qeuue is full, skip the message')

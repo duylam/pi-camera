@@ -33,10 +33,8 @@ async def run(
             while not incoming_rtc_request_queue.empty():
                 request = incoming_rtc_request_queue.get()
                 client_id = request.call_id
-                logging.debug('grpc request from queue')
-                logging.debug(request)
-                if request.HasField('create_offer'):
-                    logging.debug("Received new create_offer request, creating new peer connection with id %s", client_id)
+                logging.debug("Request payload: {}".format(request.__str__()))
+                if request.WhichOneof('type') == 'create_offer':
                     response = rtc_signaling_service_pb2.RtcSignalingResponse()
                     try:
                       cn = RtcConnection(client_id)
@@ -57,10 +55,9 @@ async def run(
                       raise
                     except:
                         logging.exception('Error writing to signaling response queue')
-                elif request.HasField('answer_offer'):
-                    logging.debug("Received answer request for peer connection with id %s", client_id)
+                elif request.WhichOneof('type') == 'answer_offer':
                     response = rtc_signaling_service_pb2.RtcSignalingResponse()
-                    response.answer_offer = empty_pb2.Empty()
+                    response.answer_offer.CopyFrom(empty_pb2.Empty())
                     for c in peer_connections:
                         if c.client_id == client_id:
                           try:
@@ -71,6 +68,7 @@ async def run(
                           except:
                             response.error = True
                             logging.exception('Error on procesing RTC answer')
+                            break
 
                     try:
                         outgoing_rtc_response_queue.put(response, timeout=2)
@@ -79,8 +77,7 @@ async def run(
                       raise
                     except:
                         logging.exception('Error writing to signaling response queue')
-                elif request.HasField('confirm_answer'):
-                    logging.debug("Received confirmation request for peer connection with id %s", client_id)
+                elif request.WhichOneof('type') == 'confirm_answer':
                     for c in peer_connections:
                         if c.client_id == client_id:
                             c.confirm_answer()

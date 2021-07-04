@@ -54,7 +54,7 @@ class CameraStreamTrack(MediaStreamTrack):
         super().__init__()
         self._frames_queue = queue.Queue(maxsize=frames_queue_size)
 
-    def add_video_frame(frames: set):
+    def add_video_frames(self, frames: set):
         for f in frames:
             # Any error on adding one frame is ignored since we're streaming from camera
             try:
