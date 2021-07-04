@@ -1,4 +1,4 @@
 #!/bin/bash
 
-bash ../../schema/scripts/compile_node.sh ./src/schema_node
+bash ../../schema/scripts/compile_node.sh `pwd`/src/schema_node
 

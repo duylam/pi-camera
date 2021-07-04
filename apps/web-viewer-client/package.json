@@ -5,6 +5,8 @@
   "scripts": {
     "build": "NODE_ENV=production vue-cli-service build",
     "update-toc": "markdown-toc -i README.md",
+    "compile-proto": "bash ./scripts/compile_proto.sh",
+    "postinstall": "npm run compile-proto",
     "start": "npx vue-cli-service serve"
   },
   "devDependencies": {
@@ -21,6 +23,7 @@
     "lodash": "^4.17.21",
     "markdown-toc": "^1.2.0",
     "vue": "^3.0.0",
+    "google-protobuf": "^3.17.3",
     "vue-axios": "^3.2.4"
   },
   "eslintConfig": {

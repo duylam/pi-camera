@@ -27,7 +27,7 @@ schema_root_dir=`pwd`/$schema_root_dir
 cd $schema_root_dir
 npm i
 
-npx grpc_tools_node_protoc -I $schema_root_dir/src/ --js_out=import_style=commonjs,binary:$out_dir --grpc_out=grpc_js:$out_dir $schema_root_dir/src/rtc_signaling_service.proto
+npx grpc_tools_node_protoc -I $schema_root_dir/src/ --js_out=import_style=commonjs,binary:$out_dir --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$out_dir --plugin=protoc-gen-grpc-web=$schema_root_dir/node_modules/grpc-tools/bin/protoc-gen-grpc-web $schema_root_dir/src/rtc_signaling_service.proto 
 
 echo "Finished!"
 

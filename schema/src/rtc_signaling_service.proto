@@ -3,27 +3,45 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 
 service RtcSignaling {
-  rpc Subscribe(stream RtcSignalingResponse) returns (stream RtcSignalingRequest) {}
+  // For the Pi client to communicate signaling messages with other peers
+  rpc SubscribeOtherPeer(stream RtcSignalingMessage) returns (stream RtcSignalingMessage) {}
+
+  // For the browser to send signaling message
+  rpc SendRtcMessage(RtcSignalingMessage) returns (RtcSignalingMessage) {}
+
+  // For the browser to receive push notification of signaling messages
+  rpc WebSubscribeOtherPeer(WebSubscribeOtherPeerRequest) returns (stream RtcSignalingMessage) {}
 }
 
-message RtcSignalingRequest {
-  string call_id = 1;
+message WebSubscribeOtherPeerRequest {
+  string client_id = 1;
+}
 
-  oneof type {
-    google.protobuf.Empty create_offer = 10; 
-    string answer_offer = 11; 
-    google.protobuf.Empty confirm_answer = 12; 
-    google.protobuf.Empty noop = 13;
-    string ice_candidate = 14;
+message RtcSignalingMessage {
+  message Request {
+    string client_id = 1;
+
+    oneof type {
+      google.protobuf.Empty create_offer = 10; 
+      string answer_offer = 11; 
+      google.protobuf.Empty confirm_answer = 12; 
+      google.protobuf.Empty noop = 13;
+      string ice_candidate = 14;
+    }
   }
-}
 
-message RtcSignalingResponse {
-  bool error = 1;
+  message Response {
+    bool error = 1;
+  
+    oneof type {
+      string create_offer = 10; 
+      google.protobuf.Empty answer_offer = 11; 
+    }
+  }
 
   oneof type {
-    string create_offer = 10; 
-    google.protobuf.Empty answer_offer = 11; 
+    Request request = 1;
+    Response response = 2;
   }
 }
 

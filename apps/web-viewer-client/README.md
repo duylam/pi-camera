@@ -23,9 +23,14 @@ A Web frontend app (VueJS) displays video from `pi-camera-client` in WebRTC prot
 # 3. Other commands
 
 1. To update TOC in README, run `npm run update-toc`.
+1. To compile .proto to nodejs, run `npm run compile-proto`.
 1. To install new node library: `npm i -D <name>`.
 1. To build to frontend package: `npm run build`.
 1. To run [Vue CLI](https://cli.vuejs.org/guide/): `npx vue-cli-service help`. Some common commands
 
   - To lint: `npx vue-cli-service lint`
+
+# 3. Technical notes
+
+- [WebRTC API doc](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
 
