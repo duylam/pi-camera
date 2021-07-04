@@ -2,6 +2,7 @@ import queue, asyncio
 
 from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, RTCSessionDescription
 from aiortc.mediastreams import MediaStreamError
+from aiortc.sdp import candidate_from_sdp
 
 from lib import config
 
@@ -24,11 +25,14 @@ class RtcConnection:
     return self._client_id
 
   @property
-  def ready(self):
+  def ready(self) -> bool:
     return self._answer_confirmed and self._pc.signalingState == 'stable'
 
-  def append_video_frames(self, video_frames: set):
+  def append_video_frames(self, video_frames: set) -> None:
     self._camera_stream_track.add_video_frames(video_frames)
+
+  async def add_ice_candidate(self, sdp: str) -> None:
+    await self._pc.addIceCandidate(candidate_from_sdp(sdp))
 
   async def create_offer(self):
     # https://pyav.org/docs/develop/cookbook/basics.html#parsing
