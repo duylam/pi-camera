@@ -4,35 +4,42 @@ import "google/protobuf/empty.proto";
 
 service RtcSignaling {
   // For the Pi client to communicate signaling messages with other peers
-  rpc SubscribeOtherPeer(stream RtcSignalingMessage) returns (stream RtcSignalingMessage) {}
+  rpc SubscribeMessage(stream RtcSignalingMessage) returns (stream RtcSignalingMessage) {}
 
-  // For the browser to send signaling message
-  rpc SendRtcMessage(RtcSignalingMessage) returns (RtcSignalingMessage) {}
+  // For the browser to send signaling message requests
+  rpc SendMessage(RtcSignalingMessage) returns (google.protobuf.Empty) {}
 
-  // For the browser to receive push notification of signaling messages
-  rpc WebSubscribeOtherPeer(WebSubscribeOtherPeerRequest) returns (stream RtcSignalingMessage) {}
+  // For the browser to receive signaling message responses
+  rpc SubscribeIncomingMessage(SubscribeIncomingMessageRequest) returns (stream RtcSignalingMessage) {}
 }
 
-message WebSubscribeOtherPeerRequest {
+message CallHeader {
   string client_id = 1;
+}
+
+message SubscribeIncomingMessageRequest {
+  CallHeader call_header = 1;
 }
 
 message RtcSignalingMessage {
   message Request {
-    string client_id = 1;
+    CallHeader call_header = 1;
 
     oneof type {
       google.protobuf.Empty create_offer = 10; 
       string answer_offer = 11; 
-      google.protobuf.Empty confirm_answer = 12; 
-      google.protobuf.Empty noop = 13;
-      string ice_candidate = 14;
+      google.protobuf.Empty confirm_answer = 12;
+      string ice_candidate = 13;
     }
   }
 
   message Response {
-    string client_id = 1;
-    bool error = 2;
+    message Error {
+      string error_message = 1; 
+    }
+
+    CallHeader call_header = 1;
+    Error error = 2;
   
     oneof type {
       string create_offer = 10; 
@@ -43,6 +50,7 @@ message RtcSignalingMessage {
   oneof type {
     Request request = 1;
     Response response = 2;
+    google.protobuf.Empty noop = 3; // for heartbeat to keep connection alive, no response
   }
 }
 

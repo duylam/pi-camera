@@ -120,7 +120,7 @@ function startGrpcService() {
   grpcServer.start();
 
   setInterval(function () {
-    grpcServer.sendHeartbeat();
+    grpcServer.keepStreamAlive();
   }, config.HeartBeatIntervalMs);
 }
 
