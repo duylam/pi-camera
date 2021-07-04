@@ -65,3 +65,8 @@ Run `bash poc/wrap-mp4-container/run.sh`
 
 Run `bash poc/check-video-format/run.sh`
 
+# 5. Technical notes
+
+- [Python generated from .proto](https://developers.google.com/protocol-buffers/docs/reference/python-generated)
+- [Python grpc example with asyncio module](https://github.com/grpc/grpc/blob/master/examples/python/route_guide/asyncio_route_guide_client.py)
+
