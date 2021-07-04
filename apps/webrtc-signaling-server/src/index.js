@@ -125,8 +125,9 @@ function startRestService() {
     else if (path.startsWith('/ice')) {
       const req = new grpcModels.RtcSignalingRequest();
       req.setCallId(callId);
-      req.setIceCandidate(ctx.request.body.sdp);
+      req.setIceCandidate(JSON.stringify(ctx.request.body.sdp));
       piClient.send(req);
+      ctx.response.status = 200;
       done();
     }
     else if (ctx.request.method === 'POST' && path.startsWith('/answer')) {

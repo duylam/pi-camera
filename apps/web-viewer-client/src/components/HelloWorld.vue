@@ -59,9 +59,12 @@ export default {
       this.log('Created peer cnnection object');
 
       this.peerConnection.addEventListener('icecandidate', function(e) {
+        // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
         that.log('On icecandidate event: addIceCandidate success');
         that.log(`On icecandidate event: ${e.candidate}`);
-        that.$http.put('ice', {sdp: e.candidate}, reqOption);
+        if (e.candidate) {
+          that.$http.put('ice', {sdp: e.candidate}, reqOption);
+        }
       });
       this.log('Registered "icecandidate" event on peer cnnection');
 
