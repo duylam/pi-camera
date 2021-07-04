@@ -2,7 +2,9 @@ import queue, asyncio
 
 from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, RTCSessionDescription
 from aiortc.mediastreams import MediaStreamError
+#from aiortc.contrib.signaling import object_from_string
 from aiortc.sdp import candidate_from_sdp
+import json
 
 from lib import config
 
@@ -32,7 +34,12 @@ class RtcConnection:
     self._camera_stream_track.add_video_frames(video_frames)
 
   async def add_ice_candidate(self, sdp: str) -> None:
-    await self._pc.addIceCandidate(candidate_from_sdp(sdp))
+    # Copy from https://github.com/aiortc/aiortc/blob/a270cd887fba4ce9ccb680d267d7d0a897de3d75/src/aiortc/contrib/signaling.py#L22
+    json_msg = json.loads(sdp)
+    candidate = candidate_from_sdp(sdp)
+    candidate.sdpMid = json_msg["sdpMid"]
+    candidate.sdpMLineIndex = json_msg["sdpMLineIndex"]
+    await self._pc.addIceCandidate(candidate)
 
   async def create_offer(self):
     # https://pyav.org/docs/develop/cookbook/basics.html#parsing
