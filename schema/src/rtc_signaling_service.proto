@@ -14,6 +14,7 @@ message RtcSignalingRequest {
     string answer_offer = 11; 
     google.protobuf.Empty confirm_answer = 12; 
     google.protobuf.Empty noop = 13;
+    string ice_candidate = 14;
   }
 }
 

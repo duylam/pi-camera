@@ -55,17 +55,19 @@ export default {
       }
 
       this.peerConnection = new RTCPeerConnection(configuration);
+      const reqOption = {params: {cid: Date.now()}};
       this.log('Created peer cnnection object');
 
       this.peerConnection.addEventListener('icecandidate', function(e) {
         that.log('On icecandidate event: addIceCandidate success');
-        that.log(`On icecandidate event: ${e.candidate ? e.candidate.candidate : '(null)'}`);
+        that.log(`On icecandidate event: ${e.candidate}`);
+        that.$http.put('ice', {sdp: e.candidate}, reqOption);
       });
       this.log('Registered "icecandidate" event on peer cnnection');
 
       this.peerConnection.addEventListener('iceconnectionstatechange', function(e) {
         that.log(`On iceconnectionstatechange event: ICE state: ${that.peerConnection.iceConnectionState}`);
-        that.log(`On iceconnectionstatechange event: ICE state change event: ${e}`);
+        console.error(e);
       });
       this.log('Registered "iceconnectionstatechange" event on peer cnnection');
 
@@ -78,7 +80,6 @@ export default {
       this.log('Registered "track" event on peer cnnection');
 
       try {
-        const reqOption = {params: {cid: Date.now()}};
         this.log('Sending request-create-offer');
         const response = await this.$http.post('offer', null, reqOption);
         await this.peerConnection.setRemoteDescription({

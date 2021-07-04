@@ -122,6 +122,13 @@ function startRestService() {
         done();
       });
     }
+    else if (path.startsWith('/ice')) {
+      const req = new grpcModels.RtcSignalingRequest();
+      req.setCallId(callId);
+      req.setIceCandidate(ctx.request.body.sdp);
+      piClient.send(req);
+      done();
+    }
     else if (ctx.request.method === 'POST' && path.startsWith('/answer')) {
       const req = new grpcModels.RtcSignalingRequest();
       req.setCallId(callId);
