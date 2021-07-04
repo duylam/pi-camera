@@ -45,12 +45,8 @@ class PiClient {
       return this._debug.log('Warn: no client connected, skip send()!');
     }
 
-    this._debug.log('sending to pi', this._onResponses.length);
-
     this._call.write(grpcRequest);
     onResponse && this._onResponses.push(onResponse);
-
-    this._debug.log('sent to pie', this._onResponses.length);
   }
 
   end() {
@@ -65,7 +61,6 @@ class PiClient {
   }
 
   _onCallData(msg) {
-    this._debug.log('Dispatching message to callbacks', this._onResponses.length);
     for (const cb of this._onResponses) {
       cb(null, msg);
     } 
@@ -90,7 +85,7 @@ function startRestService() {
   const app = new Koa();
 
   app.use(cors({
-    allowMethods: 'POST',
+    allowMethods: 'POST, PUT',
     maxAge: 3600
   }));
   app.use(koaBody());
@@ -130,7 +125,7 @@ function startRestService() {
     else if (ctx.request.method === 'POST' && path.startsWith('/answer')) {
       const req = new grpcModels.RtcSignalingRequest();
       req.setCallId(callId);
-      req.setAnswerOffer(ctx.request.body);
+      req.setAnswerOffer(ctx.request.body.sdp);
       piClient.send(req, function (e, result) {
         ctx.response.type = 'text/plain';
         if (e) {

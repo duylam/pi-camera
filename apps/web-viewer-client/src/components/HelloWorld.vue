@@ -89,13 +89,11 @@ export default {
 
         const answerSessionDescription = await this.peerConnection.createAnswer();
 
-        console.log(answerSessionDescription);
-
         this.log('Sending answer');
-        await this.$http.post('answer', answerSessionDescription.sdp, reqOption);
+        await this.$http.post('answer', {sdp: answerSessionDescription.sdp}, reqOption);
         await this.peerConnection.setLocalDescription(answerSessionDescription);
         this.log('Done setLocalDescription');
-        await this.$http.put('answer', reqOption);
+        await this.$http.put('answer', null, reqOption);
         this.log('Got confirmation');
       }
       catch (e) {
