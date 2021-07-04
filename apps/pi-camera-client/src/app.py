@@ -9,6 +9,10 @@ import logging, asyncio
 from queue import Queue
 from tasks import run_camera,run_rtc_signaling,run_main
 
+# TODO:
+# 1. Add namespace for component
+# 2. Clean up log message
+# 3. Make sure the python runs as long-running process (auto healing)
 logging.basicConfig(
   format="%(asctime)s [%(levelname)s]: %(message)s",
   level=logging.DEBUG,

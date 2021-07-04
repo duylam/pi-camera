@@ -16,6 +16,8 @@ async def run(
     try:
         logging.debug('Begin loop of forwarding video chunk to peer connections')
         while True:
+            # TODO: add timestamp of created time and auto remove peer connection with state
+            # non connected since UDP doesn't know the other peer (browser) refreshes
             closed_peer_connections = set(filter(lambda c: (c.closed), peer_connections))
 
             # Most of times that the loop is running, connections are usually stay openning. So to
@@ -62,12 +64,12 @@ async def run(
                         if c.client_id == client_id:
                           try:
                             await c.receive_answer(request.answer_offer)
-                            break
                           except KeyboardInterrupt:
                             raise
                           except:
                             response.error = True
                             logging.exception('Error on procesing RTC answer')
+                          finally:
                             break
 
                     try:
@@ -77,6 +79,18 @@ async def run(
                       raise
                     except:
                         logging.exception('Error writing to signaling response queue')
+                elif request.WhichOneof('type') == 'ice_candidate':
+                    for c in peer_connections:
+                        if c.client_id == client_id:
+                          try:
+                            await c.add_ice_candidate(request.ice_candidate)
+                          except KeyboardInterrupt:
+                            raise
+                          except:
+                            logging.exception('Error on procesing ICE candidate')
+                          finally:
+                            break
+
                 elif request.WhichOneof('type') == 'confirm_answer':
                     for c in peer_connections:
                         if c.client_id == client_id:
