@@ -7,6 +7,7 @@
     Remote video height: {{ remoteVideoHeight }}px<br/>
     <p>
       Logs<br />
+      <button v-on:click="clearLog">Clear log</button><br />
       <textarea cols="100" rows="50" ref="logTextArea"></textarea>
     </p>
   </div>
@@ -31,6 +32,9 @@ export default {
   methods: {
     log: function(msg) {
       this.$refs.logTextArea.value = this.$refs.logTextArea.value + msg + '\n';
+    },
+    clearLog: function() {
+      this.$refs.logTextArea.value = '';
     },
     start: async function() {
       const that = this;
@@ -75,16 +79,24 @@ export default {
 
       try {
         const reqOption = {params: {cid: Date.now()}};
+        this.log('Sending request-create-offer');
         const response = await this.$http.post('offer', null, reqOption);
         await this.peerConnection.setRemoteDescription({
           type: 'offer',
-          scp: response.body
+          sdp: response.data
         });
+        this.log('Done setRemoteDescription');
 
         const answerSessionDescription = await this.peerConnection.createAnswer();
+
+        console.log(answerSessionDescription);
+
+        this.log('Sending answer');
         await this.$http.post('answer', answerSessionDescription.sdp, reqOption);
         await this.peerConnection.setLocalDescription(answerSessionDescription);
+        this.log('Done setLocalDescription');
         await this.$http.put('answer', reqOption);
+        this.log('Got confirmation');
       }
       catch (e) {
           this.log('Error on sending offer');
