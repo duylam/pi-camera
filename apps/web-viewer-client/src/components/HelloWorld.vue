@@ -15,7 +15,13 @@
 
 <script>
 import * as config from '../lib/config';
+import grpcService from '../lib/schema_node/rtc_signaling_service_grpc_web_pb';
+import grpcModel from '../lib/schema_node/rtc_signaling_service_pb';
 import $ from 'lodash';
+
+const GOOGLE_EMPTY =  new grpcModel.google.protobuf.Empty();
+const callHeader = new grpcModel.CallHeader();
+callHeader.setClientId(Date.now());
 
 export default {
   name: 'HelloWorld',
@@ -28,6 +34,24 @@ export default {
       that.remoteVideoWidth = this.videoWidth;
       that.remoteVideocHeight = this.videoHeight;
     });
+
+    this._grpcClient = grpcService.RtcSignalingClient(config.GRPC_API_BASE_URL);
+
+    const request = new grpcModel.SubscribeIncomingMessageRequest();
+    request.setCallHeader(callHeader);
+    try {
+      const call = this._grpcClient.subscribeIncomingMessage(request);
+      call.on('data', function (response) {
+
+      });
+      call.on('end', function () {
+        that.log('stream ended');
+      });
+    }
+    catch (e) {
+      this.log('stream error, check Console');
+      console.error('Fatal error', e);
+    }
   },
   methods: {
     log: function(msg) {
@@ -55,7 +79,10 @@ export default {
       }
 
       this.peerConnection = new RTCPeerConnection(configuration);
-      const reqOption = {params: {cid: Date.now()}};
+
+      const createOfferMessageRequestCallHeader = new grpcModel.CallHeader();
+      createOfferMessageRequestCallHeader.setClientId(clientId);
+
       this.log('Created peer cnnection object');
 
       this.peerConnection.addEventListener('icecandidate', function(e) {
@@ -84,6 +111,15 @@ export default {
 
       try {
         this.log('Sending request-create-offer');
+
+        const createOfferMessageRequest = new grpcModel.RtcSignalingMessage.Request();
+        createOfferMessageRequest.setCallHeader(callHeader);
+        createOfferMessageRequest.setCreateOffer(GOOGLE_EMPTY);
+        const createOfferMessage = new grpcModel.RtcSignalingMessage();
+        createOfferMessage.setRequest(createOfferMessageRequest);
+
+        this._grpcClient.sendMessage(createOfferMessage);
+
         const response = await this.$http.post('offer', null, reqOption);
         await this.peerConnection.setRemoteDescription({
           type: 'offer',
