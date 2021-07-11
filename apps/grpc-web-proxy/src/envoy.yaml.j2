@@ -35,7 +35,7 @@ static_resources:
               cors:
                 allow_origin_string_match:
                 - prefix: "*"
-                allow_methods: "GET, PUT, DELETE, POST, OPTIONS"
+                allow_methods: "POST, OPTIONS"
                 allow_headers: "dnt,x-requested-with,x-accept-content-transfer-encoding,x-accept-response-streaming,if-modified-since,cache-control,connection,keep-alive,user-agent,sec-fetch-site,sec-fetch-mode,sec-fetch-dest,content-type,content-transfer-encoding,x-user-agent,x-grpc-web,x-auth-token"
                 # These headers are made by grpc-web Envoy's plugin when there is call error
                 # and they need to be exposed for grpc-web js client to read 
@@ -51,6 +51,10 @@ static_resources:
               # To customize access log format, see
               # https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/access_loggers/file/v3/file.proto
               "@type": type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog
+              # See command operator at
+              # https://www.envoyproxy.io/docs/envoy/v1.17.2/configuration/observability/access_log/usage#command-operators
+              format: |
+                [%START_TIME%] %DOWNSTREAM_LOCAL_ADDRESS% "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%" "%REQ(:AUTHORITY)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" %RESPONSE_CODE% "%RESP(grpc-status?)% %RESP(grpc-message?)%" %RESPONSE_FLAGS% "%RESPONSE_CODE_DETAILS%" %DURATION%ms "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
               path: /var/log/envoy/access.log 
   clusters:
   - name: grpc_service_cluster

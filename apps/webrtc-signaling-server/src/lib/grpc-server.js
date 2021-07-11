@@ -37,6 +37,7 @@ class GrpcServer {
   }
 
   start() {
+    this._debug.log('Starting service'); 
     const server = new grpc.Server();
     server.addService(grpcServices.RtcSignalingService, {
       subscribeMessage: this._createSubscribeMessageImplementation(),
@@ -45,7 +46,7 @@ class GrpcServer {
     });
     server.bindAsync(`0.0.0.0:${config.GrpcPort}`, grpc.ServerCredentials.createInsecure(), () => {
       server.start();
-      this._debug.log(`Signaling GRPC service listens on ${config.GrpcPort}`);
+      this._debug.log(`Listens on ${config.GrpcPort}`);
     });
   }
 
@@ -72,7 +73,7 @@ class GrpcServer {
 
           const ns = `[${clientId}]`
           debug.log(`${ns} Sending message to web client`);  
-          this._sendMessageToWebClient(clientId, message);
+          this._webClients[clientId].send(msg);
         } 
         catch (ignored) {
           debug.error(`Error on processing. Skip the message`, ignored);  
@@ -96,17 +97,19 @@ class GrpcServer {
           msg.setResponse(msgResponse);
 
           debug.log(`${ns} Sending back error response now`);  
+          try {
+            this._webClients[clientId].send(msg);
+          }
+          catch (ignored) {
+            debug.error(`${ns} Error on sending back response, ignore`, ignored);
+          }
           this._sendMessageToWebClient(clientId, msg);
         }
       }
+      default: {
+        debug.log(`Unsupported type=${type}, ignore!`);
+      }
     } 
-  }
-
-  _sendMessageToWebClient(clientId, msg) {
-    try {
-      this._webClietns[clientId].send(msg);
-    }
-    catch (ignored) { }
   }
 
   _createSubscribeMessageImplementation() {
@@ -116,7 +119,9 @@ class GrpcServer {
 
       this._piClient.attach(call);
       this._piClient.on('message', (msg) => {
-        this._event.emit('message', {message: msg, type:'pi-incoming-message'});
+        if (!msg.noop) {
+          this._event.emit('message', {message: msg, type:'pi-incoming-message'});
+        }
       });
     }
   }
@@ -160,14 +165,16 @@ class GrpcServer {
 
       const callHeader = req.getCallHeader();
       if (!callHeader) {
-        debug.log('Missing field "call_header", closing');
-        return call.end();
+        const msg = 'Missing field "call_header", closing'; 
+        debug.log(msg);
+        return call.destroy(new GrpcError(GrpcStatusCode.INVALID_ARGUMENT, msg));
       }
 
       const clientId = callHeader.getClientId();
       if (!clientId) {
-        debug.log('Missing field "call_header.client_id", closing');
-        return call.end();
+        const msg = 'Missing field "call_header.client_id", closing';
+        debug.log(msg);
+        return call.destroy(new GrpcError(GrpcStatusCode.INVALID_ARGUMENT, msg));
       }
 
       debug.log(`Read client_id=${clientId}`);
@@ -190,42 +197,4 @@ class GrpcServer {
 }
 
 module.exports = GrpcServer;
-
-
-message CallHeader {
-  string client_id = 1;
-}
-
-message SubscribeIncomingMessageRequest {
-  CallHeader call_header = 1;
-}
-
-message RtcSignalingMessage {
-  message Request {
-    CallHeader call_header = 1;
-
-    oneof type {
-      google.protobuf.Empty create_offer = 10; 
-      string answer_offer = 11; 
-      google.protobuf.Empty confirm_answer = 12; // no response
-      string ice_candidate = 13; // no response
-    }
-  }
-
-  message Response {
-    CallHeader call_header = 1;
-    bool error = 2;
-  
-    oneof type {
-      string create_offer = 10; 
-      google.protobuf.Empty answer_offer = 11; 
-    }
-  }
-
-  oneof type {
-    Request request = 1;
-    Response response = 2;
-    google.protobuf.Empty noop = 3; // for heartbeat to keep connection alive, no response
-  }
-}
 
