@@ -23,7 +23,7 @@ PI_MEETING_HEARTBEAT_INTERVAL_MS=5000
 
 # 2. Coding workflow
 
-1. To install libraries: `npm ci`
+1. To install libraries: `npm i`
 1. To start server app with hot-reloads: `npm start`
 
 # 3. Other commands
