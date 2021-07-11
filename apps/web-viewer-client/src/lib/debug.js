@@ -1,8 +1,8 @@
-const _debug = require('debug');
+import _debug from 'debug';
 
-_debug.enable('*');
+localStorage.debug = '*';
 
-module.exports = function (namespace) {
+export default function (namespace) {
   const d = _debug(namespace);
 
   // See https://github.com/visionmedia/debug#output-streams

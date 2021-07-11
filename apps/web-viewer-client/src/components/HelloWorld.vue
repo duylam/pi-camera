@@ -14,10 +14,13 @@
 </template>
 
 <script>
+import $ from 'lodash';
+import BPromise from 'bluebird';
+
 import * as config from '../lib/config';
+import d from '../lib/debug';
 import grpcService from '../lib/schema_node/rtc_signaling_service_grpc_web_pb';
 import grpcModel from '../lib/schema_node/rtc_signaling_service_pb';
-import $ from 'lodash';
 
 const GOOGLE_EMPTY =  new grpcModel.google.protobuf.Empty();
 const callHeader = new grpcModel.CallHeader();
@@ -36,32 +39,10 @@ export default {
     });
 
     this._grpcClient = grpcService.RtcSignalingClient(config.GRPC_API_BASE_URL);
-
-    const request = new grpcModel.SubscribeIncomingMessageRequest();
-    request.setCallHeader(callHeader);
-    try {
-      const call = this._grpcClient.subscribeIncomingMessage(request);
-      call.on('data', function (response) {
-
-      });
-      call.on('end', function () {
-        that.log('stream ended');
-      });
-    }
-    catch (e) {
-      this.log('stream error, check Console');
-      console.error('Fatal error', e);
-    }
+    this._debug = d('web');
   },
   methods: {
-    log: function(msg) {
-      this.$refs.logTextArea.value = this.$refs.logTextArea.value + msg + '\n';
-    },
-    clearLog: function() {
-      this.$refs.logTextArea.value = '';
-    },
     start: async function() {
-      const that = this;
       const configuration = {};
       if (!$.isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
         configuration.iceServers = [{
@@ -69,81 +50,127 @@ export default {
         }];
       }
 
-      if (this.peerConnection) {
+      if (this._peerConnection) {
         try {
-          this.peerConnection.close();
+          this._peerConnection.close();
         }
         catch (e) {
-          console.error(e);
+          this._debug.error('Closing previous peer connection fails', e);
         }
       }
 
-      this.peerConnection = new RTCPeerConnection(configuration);
-
-      const createOfferMessageRequestCallHeader = new grpcModel.CallHeader();
-      createOfferMessageRequestCallHeader.setClientId(clientId);
-
-      this.log('Created peer cnnection object');
-
-      this.peerConnection.addEventListener('icecandidate', function(e) {
-        // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
-        that.log('On icecandidate event: addIceCandidate success');
-        that.log(`On icecandidate event: ${e.candidate}`);
-        if (e.candidate) {
-          that.$http.put('ice', {sdp: e.candidate}, reqOption);
+      if (this._signalStream) {
+        try {
+          this._signalStream.removeAllListeners();
+          this._signalStream.destroy();
         }
-      });
-      this.log('Registered "icecandidate" event on peer cnnection');
-
-      this.peerConnection.addEventListener('iceconnectionstatechange', function(e) {
-        that.log(`On iceconnectionstatechange event: ICE state: ${that.peerConnection.iceConnectionState}`);
-        console.error(e);
-      });
-      this.log('Registered "iceconnectionstatechange" event on peer cnnection');
-
-      this.peerConnection.addEventListener('track', function(e) {
-        if (that.$refs.domVideoElement.srcObject !== e.streams[0]) {
-          that.$refs.domVideoElement.srcObject = e.streams[0]
-          that.log('PeerCon received remote stream');
+        catch (e) {
+          this._debug.error('Closing previouse call subscribeIncomingMessage() fails', e);
         }
-      });
-      this.log('Registered "track" event on peer cnnection');
+      }
 
-      try {
-        this.log('Sending request-create-offer');
-
-        const createOfferMessageRequest = new grpcModel.RtcSignalingMessage.Request();
-        createOfferMessageRequest.setCallHeader(callHeader);
-        createOfferMessageRequest.setCreateOffer(GOOGLE_EMPTY);
-        const createOfferMessage = new grpcModel.RtcSignalingMessage();
-        createOfferMessage.setRequest(createOfferMessageRequest);
-
-        this._grpcClient.sendMessage(createOfferMessage);
-
-        const response = await this.$http.post('offer', null, reqOption);
-        await this.peerConnection.setRemoteDescription({
-          type: 'offer',
-          sdp: response.data
+      this._peerConnection = new RTCPeerConnection(configuration);
+      this._peerConnection
+        .addEventListener('icecandidate', (e) => {
+          // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
+          this._debug.log('On peer icecandidate event', e);
+          if (e.candidate) {
+            const iceJson = e.candidate.toSON();
+            this._debug.log('Sending .request.ice_candidate', e);
+            this._grpcClient.sendMessage(getIceCandidateRequestMessage(iceJson), (e) => {
+              if (e) this._debug.error(e);
+            });
+          }
+        })
+        .addEventListener('iceconnectionstatechange', (e) => {
+          this._debug.log('On peer iceconnectionstatechange');
+          this._debug.log(`connection.iceConnectionState=${this._peerConnection.iceConnectionState}`);
+        })
+        .addEventListener('track', (e) => {
+          this._debug.log('On peer track');
+          if (this.$refs.domVideoElement.srcObject !== e.streams[0]) {
+            this.$refs.domVideoElement.srcObject = e.streams[0]
+            this._debug.log('Added track to <video>');
+          }
         });
-        this.log('Done setRemoteDescription');
+      this._debug.log('Created peer connection and registered events');
 
-        const answerSessionDescription = await this.peerConnection.createAnswer();
+      const callDebug = d(`${this._debug.ns}:subscribeIncomingMessage`);
+      let answerSessionDescription;
+      try {
+        callDebug.log('Calling');
+        const subscribeIncomingMessageRequest = new grpcModel.SubscribeIncomingMessageRequest();
+        subscribeIncomingMessageRequest.setCallHeader(callHeader);
+        const call = this._grpcClient.subscribeIncomingMessage(subscribeIncomingMessageRequest);
+        call.on('data', async (_response) => {
+          const incomingMsg = _response.getMesssage();
 
-        this.log('Sending answer');
-        await this.$http.post('answer', {sdp: answerSessionDescription.sdp}, reqOption);
-        await this.peerConnection.setLocalDescription(answerSessionDescription);
-        this.log('Done setLocalDescription');
-        await this.$http.put('answer', null, reqOption);
-        this.log('Got confirmation');
+          if (incomingMsg.getNoop()) return;
+
+          callDebug.log('Received incoming message');
+
+          try {
+            if (incomingMsg.getResponse()) {
+              callDebug.log('It .response');
+              const response = incomingMsg.getResponse();
+
+              if (response.getError()) throw Error(response.getError().getErrorMessage());
+
+              if (response.getCreateOffer()) {
+                callDebug.log('It .response.create_offer');
+                callDebug.log('peer.setRemoteDescription()');
+                await this._peerConnection.setRemoteDescription({
+                  type: 'offer',
+                  sdp: response.getCreateOffer()
+                });
+
+                callDebug.log('peer.createAnswer()');
+                answerSessionDescription = await this._peerConnection.createAnswer();
+                this.log('Sending request.answer_offer');
+                await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getAnswerOfferRequestMessage(answerSessionDescription.sdp), cb));
+              }
+              else if (response.getAnswerOffer()) {
+                callDebug.log('It .response.answer_offer');
+                callDebug.log('peer.setLocalDescription()');
+                await this.peerConnection.setLocalDescription(answerSessionDescription);
+                this.log('Sending request.confirm_answer');
+                await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getConfirmAnwerRequestMessage(), cb));
+              }
+              else {
+                callDebug.log('Unhandled message');
+              }
+            }
+            else if (incomingMsg.getRequest()) {
+              callDebug.log('It .request');
+              const request = incomingMsg.getRequest();
+
+              if (request.getIceCandidate()) {
+                callDebug.log('It .request.ice_candidate');
+                callDebug.log('peer.addIceCandidate()');
+                await this._peerConnection.addIceCandidate(JSON.parse(request.getIceCandidate()));
+              }
+            }
+          }
+          catch (e) {
+            callDebug.error('Error on handling incoming message', e);
+          }
+        });
+        call.on('end', function () {
+          callDebug.log('Call ends');
+        });
+        this._signalStream = call;
       }
       catch (e) {
-          this.log('Error on sending offer');
-          this.log(e.message);
+        callDebug.error('Fatal error', e);
       }
 
-      // Set remote offer to peer: role for signaling
-      // https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/pc1/index.html
-      // https://github.com/node-webrtc/node-webrtc-examples/blob/master/examples/viewer/client.js
+      try {
+        this._debug.log('Sending request.create_offer');
+        await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getCreateOfferRequestMessage(), cb));
+      }
+      catch (e) {
+        this._debug.error('Error on sending request-create-offer', e);
+      }
     }
   },
   data: function () {
@@ -154,6 +181,42 @@ export default {
       peerConnection: null
     }
   }
+}
+
+function getCreateOfferRequestMessage() {
+  const request = new grpcModel.RtcSignalingMessage.Request();
+  request.setCallHeader(callHeader);
+  request.setCreateOffer(GOOGLE_EMPTY);
+  const message = new grpcModel.RtcSignalingMessage();
+  message.setRequest(request);
+  return message;
+}
+
+function getIceCandidateRequestMessage(val) {
+  const request = new grpcModel.RtcSignalingMessage.Request();
+  request.setCallHeader(callHeader);
+  request.setIceCandidate(val);
+  const message = new grpcModel.RtcSignalingMessage();
+  message.setRequest(request);
+  return message;
+}
+
+function getAnswerOfferRequestMessage(val) {
+  const request = new grpcModel.RtcSignalingMessage.Request();
+  request.setCallHeader(callHeader);
+  request.setAnswerOffer(val);
+  const message = new grpcModel.RtcSignalingMessage();
+  message.setRequest(request);
+  return message;
+}
+
+function getConfirmAnwerRequestMessage() {
+  const request = new grpcModel.RtcSignalingMessage.Request();
+  request.setCallHeader(callHeader);
+  request.setConfirmAnswer(GOOGLE_EMPTY);
+  const message = new grpcModel.RtcSignalingMessage();
+  message.setRequest(request);
+  return message;
 }
 </script>
 
