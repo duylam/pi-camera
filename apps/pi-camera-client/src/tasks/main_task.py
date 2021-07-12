@@ -3,6 +3,8 @@ from google.protobuf import empty_pb2
 from schema_python import rtc_signaling_service_pb2
 from lib import RtcConnection, config
 
+GOOGLE_EMPTY = empty_pb2.Empty()
+
 async def run(
   new_video_chunk_queue,
   incoming_rtc_request_queue,
@@ -13,6 +15,8 @@ async def run(
     logging.debug('Starting Main task')
     peer_connections = set([])
     sleep_in_second = config.MAIN_TASK_INTERVAL_DURATION / 1000
+    noop_msg = rtc_signaling_service_pb2.RtcSignalingMessage()
+    noop_msg.noop.CopyFrom(GOOGLE_EMPTY)
     try:
         logging.debug('Begin loop of forwarding video chunk to peer connections')
         while True:
@@ -33,39 +37,45 @@ async def run(
                     pc.append_video_frames(video_frames)
 
             while not incoming_rtc_request_queue.empty():
-                request = incoming_rtc_request_queue.get()
-                client_id = request.call_id
+                incoming_msg = incoming_rtc_request_queue.get()
+                if not incoming_msg.WhichOneof('request'):
+                    logging.debug('Expect .request field, skip the message')
+                    continue
+
+                request = incoming_msg.request
                 logging.debug("Request payload: {}".format(request.__str__()))
+
+                if not request.HasField('call_header'):
+                    logging.debug('Expect .request.call_header field, skip the message')
+                    continue
+
+                client_id = request.call_header.client_id
+                if not client_id:
+                    logging.debug('Expect .request.call_header.client_id field, skip the message')
+                    continue
+
                 if request.WhichOneof('type') == 'create_offer':
-                    response = rtc_signaling_service_pb2.RtcSignalingResponse()
+                    err_msg = None
+                    offer = None
                     try:
                       cn = RtcConnection(client_id)
                       offer = await cn.create_offer()
-                      response.create_offer = offer
-                    except KeyboardInterrupt:
-                      raise
+                      peer_connections.add(cn)
                     except:
-                      response.error = True
+                      err_msg = str(sys.exc_info()[0])
                       logging.exception('Error on creating RTC connection')
-
-                    try:
-                        outgoing_rtc_response_queue.put(response, timeout=2)
-                        logging.debug('Dispatched SDP of create_offer to queue')
-                        if not response.error:
-                          peer_connections.add(cn)
-                    except KeyboardInterrupt:
-                      raise
-                    except:
-                        logging.exception('Error writing to signaling response queue')
+                    finally:
+                      try:
+                          msg = get_message_response_create_offer(client_id,create_offer=offer, err_msg=err_msg)
+                          outgoing_rtc_response_queue.put(msg, timeout=2)
+                          logging.debug('Dispatched SDP of create_offer to queue')
+                      except:
+                          logging.exception('Error writing to signaling response queue')
                 elif request.WhichOneof('type') == 'answer_offer':
-                    response = rtc_signaling_service_pb2.RtcSignalingResponse()
-                    response.answer_offer.CopyFrom(empty_pb2.Empty())
                     for c in peer_connections:
                         if c.client_id == client_id:
                           try:
                             await c.receive_answer(request.answer_offer)
-                          except KeyboardInterrupt:
-                            raise
                           except:
                             response.error = True
                             logging.exception('Error on procesing RTC answer')
@@ -73,10 +83,9 @@ async def run(
                             break
 
                     try:
+                        get_message_response_answer_offer
                         outgoing_rtc_response_queue.put(response, timeout=2)
                         logging.debug('Dispatched confirmation to queue')
-                    except KeyboardInterrupt:
-                      raise
                     except:
                         logging.exception('Error writing to signaling response queue')
                 elif request.WhichOneof('type') == 'ice_candidate':
@@ -97,6 +106,12 @@ async def run(
                             c.confirm_answer()
                             break
 
+            try:
+                # Send heartbeat to detect disconnected network
+                outgoing_rtc_response_queue.put(noop_msg)
+            except:
+                pass
+
             await asyncio.sleep(sleep_in_second)
 
     except KeyboardInterrupt:
@@ -104,6 +119,37 @@ async def run(
     except:
         logging.exception('Error on main task, skip to next loop')
 
+def get_message_response_create_offer(client_id, create_offer, err_msg = None):
+    call_header = rtc_signaling_service_pb2.CallHeader()
+    call_header.client_id = client_id
+    response = rtc_signaling_service_pb2.RtcSignalingMessage.Response()
+    response.call_header.CopyFrom(call_header)
 
+    if err_msg:
+        err = rtc_signaling_service_pb2.RtcSignalingMessage.Response.Error()
+        err.error_message = err_msg
+        response.error.CopyFrom(err)
+    else:
+        response.create_offer = create_offer
 
+    message = rtc_signaling_service_pb2.RtcSignalingMessage()
+    message.response.CopyFrom(response)
+    return message
+
+def get_message_response_answer_offer(client_id, err_msg = None):
+    call_header = rtc_signaling_service_pb2.CallHeader()
+    call_header.client_id = client_id
+    response = rtc_signaling_service_pb2.RtcSignalingMessage.Response()
+    response.call_header.CopyFrom(call_header)
+
+    if err_msg:
+        err = rtc_signaling_service_pb2.RtcSignalingMessage.Response.Error()
+        err.error_message = err_msg
+        response.error.CopyFrom(err)
+    else:
+        response.answer_offer.CopyFrom(GOOGLE_EMPTY)
+
+    message = rtc_signaling_service_pb2.RtcSignalingMessage()
+    message.response.CopyFrom(response)
+    return message
 

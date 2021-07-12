@@ -6,7 +6,7 @@ from lib import config
 
 async def run(request_queue: queue.Queue, response_queue: queue.Queue):
     # See sample code at https://github.com/grpc/grpc/blob/fd3bd70939fb4239639fbd26143ec416366e4157/examples/python/route_guide/asyncio_route_guide_server.py#L111
-    async def send_response() -> Iterable[rtc_signaling_service_pb2.RtcSignalingResponse]:
+    async def send_response() -> Iterable[rtc_signaling_service_pb2.RtcSignalingMessage]:
         while True:
             try:
                 while not response_queue.empty():
@@ -26,10 +26,10 @@ async def run(request_queue: queue.Queue, response_queue: queue.Queue):
             async with grpc.aio.insecure_channel(grpc_server_origin) as channel:
                 grpc_client = rtc_signaling_service_pb2_grpc.RtcSignalingStub(channel)
                 logging.debug('Created GRPC client stub')
-                request_stream = grpc_client.Subscribe(send_response())
+                message_stream = grpc_client.SubscribeMessage(send_response())
                 logging.debug('Connected with Signaling server, begin receiving stream')
-                async for req in request_stream:
-                    if req.WhichOneof('type') == 'noop':
+                async for msg in message_stream:
+                    if msg.WhichOneof('type') == 'noop':
                         continue
 
                     if request_queue.full():
@@ -37,7 +37,7 @@ async def run(request_queue: queue.Queue, response_queue: queue.Queue):
                         continue
 
                     try:
-                        request_queue.put_nowait(req)
+                        request_queue.put_nowait(msg)
                     except KeyboardInterrupt:
                       raise
                     except:
