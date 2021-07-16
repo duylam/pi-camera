@@ -28,8 +28,8 @@ message RtcSignalingMessage {
     oneof type {
       google.protobuf.Empty create_offer = 10; 
       string answer_offer = 11; 
-      google.protobuf.Empty confirm_answer = 12;
-      string ice_candidate = 13;
+      google.protobuf.Empty confirm_answer = 12; // no response required
+      string ice_candidate = 13; // no response required
     }
   }
 

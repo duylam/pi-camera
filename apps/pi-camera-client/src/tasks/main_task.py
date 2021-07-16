@@ -40,7 +40,6 @@ async def run(
                 incoming_msg = incoming_rtc_request_queue.get()
                 if not incoming_msg.WhichOneof('request'):
                     logging.debug('Expect .request field, skip the message')
-                    continue
 
                 request = incoming_msg.request
                 logging.debug("Request payload: {}".format(request.__str__()))
@@ -72,19 +71,19 @@ async def run(
                       except:
                           logging.exception('Error writing to signaling response queue')
                 elif request.WhichOneof('type') == 'answer_offer':
+                    err_msg = None
                     for c in peer_connections:
                         if c.client_id == client_id:
                           try:
                             await c.receive_answer(request.answer_offer)
                           except:
-                            response.error = True
+                            err_msg = str(sys.exc_info()[0])
                             logging.exception('Error on procesing RTC answer')
                           finally:
                             break
 
                     try:
-                        get_message_response_answer_offer
-                        outgoing_rtc_response_queue.put(response, timeout=2)
+                        outgoing_rtc_response_queue.put(get_message_response_answer_offer(client_id, err_msg), timeout=2)
                         logging.debug('Dispatched confirmation to queue')
                     except:
                         logging.exception('Error writing to signaling response queue')
@@ -93,8 +92,6 @@ async def run(
                         if c.client_id == client_id:
                           try:
                             await c.add_ice_candidate(request.ice_candidate)
-                          except KeyboardInterrupt:
-                            raise
                           except:
                             logging.exception('Error on procesing ICE candidate')
                           finally:
@@ -110,7 +107,7 @@ async def run(
                 # Send heartbeat to detect disconnected network
                 outgoing_rtc_response_queue.put(noop_msg)
             except:
-                pass
+                logging.exception('Warning: failed to send hearthbeat message')
 
             await asyncio.sleep(sleep_in_second)
 

@@ -38,8 +38,6 @@ async def run(request_queue: queue.Queue, response_queue: queue.Queue):
 
                     try:
                         request_queue.put_nowait(msg)
-                    except KeyboardInterrupt:
-                      raise
                     except:
                         logging.exception('Error on writing to request_queue')
         except KeyboardInterrupt:
