@@ -28,10 +28,10 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 1. (Optional) Use [venv](https://docs.python.org/3/library/venv.html) to create virtual environment. Quick steps as below
 
   - Create directory for the virtual environment (ignored by git):  `$ python3 -m venv --clear ./.penv`
-  - To enter the environment: `$ source ./.penv/bin/activate`
-  - To exit the environment: `$ deactivate`
+  - To enter the virtual environment: `$ source ./.penv/bin/activate`
+  - To exit the virtual environment: `$ deactivate`
 
-3. See necessary environment at `src/lib/config.py`
+3. See necessary environment at `src/lib/config.py`. You can create `.env` file for predefine env var for local development, see [python-dotenv](https://pypi.org/project/python-dotenv/)
 
 # 3. Coding workflow
 

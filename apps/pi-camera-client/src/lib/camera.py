@@ -10,13 +10,6 @@ class Camera:
         self._captured_video_frames = set([])
         self._av_codec = None
 
-    def start(self):
-        # quality: For the 'h264' format, use values between 10 and 40 where 10 is extremely
-        # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
-        # encoding).
-        self._pi_camera.start_recording(self._pi_camera_buffer_stream_1, format='h264', quality=23)
-        self._av_codec = av.CodecContext.create('h264', 'r')
-
     @property
     def buffer_size(self) -> int:
         return CAMERA_BUFFER_SIZE
@@ -53,13 +46,18 @@ class Camera:
     def get_video_video_frames(self):
         return self._captured_video_frames
 
-    def end(self) -> None:
-        if self._pi_camera.recording: self._pi_camera.stop_recording()
-        self._pi_camera.close()
-
     def __enter__(self):
+        # quality: For the 'h264' format, use values between 10 and 40 where 10 is extremely
+        # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
+        # encoding).
+        self._pi_camera.start_recording(self._pi_camera_buffer_stream_1, format='h264', quality=23)
+        self._av_codec = av.CodecContext.create('h264', 'r')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.end()
+        try:
+            if self._pi_camera.recording: self._pi_camera.stop_recording()
+            self._pi_camera.close()
+        except:
+            pass
 

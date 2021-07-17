@@ -9,10 +9,10 @@ async def run(outgoing_video_chunk_queue: queue.Queue):
     # See https://picamera.readthedocs.io/en/release-1.13/api_camera.html#pivideoframe
     #video_frame_info = camera.frame
     while True:
-        with Camera() as camera:
-            try:
-                camera.start()
-                logging.debug('Initialized Camera successfully. Begin loop of capturing camera hardware and sending video chunks to queue')
+        try:
+            logging.debug('Initializing Camera module')
+            with Camera() as camera:
+                logging.debug('Initialized Camera module. Begin loop of capturing camera hardware and sending video chunks to queue')
                 while True:
                     await camera.capture_recording()
                     video_frames = camera.get_video_video_frames()
@@ -28,8 +28,8 @@ async def run(outgoing_video_chunk_queue: queue.Queue):
                         except:
                             logging.exception('Error on writing video chunk to queue, skip the chunk')
 
-            except KeyboardInterrupt:
-                raise
-            except:
-                logging.exception('Camera has fatal error, re-initializing it')
+        except KeyboardInterrupt:
+            raise
+        except:
+            logging.exception('Camera has fatal error, re-initializing it')
 
