@@ -19,8 +19,8 @@ import BPromise from 'bluebird';
 
 import * as config from '../lib/config';
 import d from '../lib/debug';
-import grpcService from '../lib/schema_node/rtc_signaling_service_grpc_web_pb';
-import grpcModel from '../lib/schema_node/rtc_signaling_service_pb';
+import grpcService from '../schema_node/rtc_signaling_service_grpc_web_pb';
+import grpcModel from '../schema_node/rtc_signaling_service_pb';
 
 const GOOGLE_EMPTY =  new grpcModel.google.protobuf.Empty();
 const callHeader = new grpcModel.CallHeader();
@@ -82,7 +82,7 @@ export default {
             });
           }
         })
-        .addEventListener('iceconnectionstatechange', (e) => {
+        .addEventListener('iceconnectionstatechange', () => {
           this._debug.log('On peer iceconnectionstatechange');
           this._debug.log(`connection.iceConnectionState=${this._peerConnection.iceConnectionState}`);
         })

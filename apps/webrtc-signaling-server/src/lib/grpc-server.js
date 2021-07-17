@@ -29,10 +29,10 @@ class GrpcServer {
     //  - pi-incoming-message: the message sent from Pi box
     //  - web-incoming-message: the message sent from the browser
     this._event = new EventEmitter();
-    this._event.on('message', this._onGrpcMessage.bind(this, debug(`${this._debug.ns}:onGrpcMessage`)));
+    this._event.on('message', this._onGrpcMessage.bind(this, d(`${this._debug.ns}:onGrpcMessage`)));
 
     // Only support single Pi box at this time
-    this._piClient = new PiClient({ns: `${this._debug.ns}:pi-client`});
+    this._piClient = new StreamCall({ns: `${this._debug.ns}:pi-client`});
     this._webClients = {};
   }
 
@@ -50,8 +50,8 @@ class GrpcServer {
     });
   }
 
-  keepStreamAlive() {
-    this._piClient && this._piClient.sendNoop();
+  keepStreamsAlive() {
+    this._piClient.sendNoop();
     for (const c of $.values(this._webClients)) {
       c.sendNoop();
     }
@@ -119,7 +119,7 @@ class GrpcServer {
 
       this._piClient.attach(call);
       this._piClient.on('message', (msg) => {
-        if (!msg.noop) {
+        if (!msg.getNoop()) {
           this._event.emit('message', {message: msg, type:'pi-incoming-message'});
         }
       });

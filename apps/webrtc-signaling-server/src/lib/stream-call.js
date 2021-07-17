@@ -8,7 +8,7 @@ const noopMessage = (function () {
   const msg = new grpcModels.RtcSignalingMessage();
   msg.setNoop(new grpcModels.google.protobuf.Empty());
   return msg;
-});
+})();
 
 class StreamCall extends EventEmitter {
   constructor({ns, clientId}) {
@@ -16,9 +16,10 @@ class StreamCall extends EventEmitter {
 
     this._call = null;
     this._ns = ns;
-    this._clientId = clientId;
+    this._clientId = clientId || '';
     this._callEnded = false;
     this._cleanupEvents = noop;
+    this._debug = d(ns);
   }
 
   get clientId() {
@@ -33,7 +34,7 @@ class StreamCall extends EventEmitter {
     this.detach();
 
     const now = Date.now().toString();
-    this._debug = d(`${ns}:${now.substr(now.length -6, 6)}`);
+    this._debug = d(`${this._ns}:${now.substr(now.length -6, 6)}`);
 
     const boundOnCallData = this._onCallData.bind(this);
     const boundOnCallEnd = this._onCallEnd.bind(this);
