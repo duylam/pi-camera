@@ -5,6 +5,7 @@ import sys, os
 # the change in sys.path below is a workaroud for Python 3
 sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
 
+from dotenv import load_dotenv
 import logging, asyncio
 from queue import Queue
 from tasks import run_camera,run_rtc_signaling,run_main
@@ -17,6 +18,8 @@ logging.basicConfig(
   format="%(asctime)s [%(levelname)s]: %(message)s",
   level=logging.DEBUG,
   datefmt="%H:%M:%S")
+
+load_dotenv()  # take environment variables from .env file
 
 async def main():
   new_video_chunk_queue = Queue(20)
