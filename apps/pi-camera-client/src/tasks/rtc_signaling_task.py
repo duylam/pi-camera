@@ -23,6 +23,7 @@ async def run(request_queue: queue.Queue, response_queue: queue.Queue):
     grpc_server_origin="{0}:{1}".format(config.GRPC_HOSTNAME, config.GRPC_PORT)
     while True:
         try:
+            logging.debug('Creating GRPC client stub')
             async with grpc.aio.insecure_channel(grpc_server_origin) as channel:
                 grpc_client = rtc_signaling_service_pb2_grpc.RtcSignalingStub(channel)
                 logging.debug('Created GRPC client stub')
