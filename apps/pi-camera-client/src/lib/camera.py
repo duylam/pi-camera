@@ -10,10 +10,6 @@ class Camera:
         self._captured_video_frames = set([])
         self._av_codec = None
 
-    @property
-    def buffer_size(self) -> int:
-        return CAMERA_BUFFER_SIZE
-
     async def capture_recording(self) -> None:
         # Only sleep in 1s, camera can produce data exceeding
         # buffer size on longer sleep time. It produces around

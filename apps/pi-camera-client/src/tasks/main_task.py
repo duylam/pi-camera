@@ -39,7 +39,7 @@ async def run(
 
                while not incoming_rtc_request_queue.empty():
                    incoming_msg = incoming_rtc_request_queue.get()
-                   if not incoming_msg.WhichOneof('request'):
+                   if not incoming_msg.WhichOneof('type') == 'request':
                        logging.debug('Expect .request field, skip the message')
 
                    request = incoming_msg.request

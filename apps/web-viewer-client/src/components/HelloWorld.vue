@@ -5,11 +5,6 @@
     <video ref="domVideoElement" playsinline autoplay></video>
     Remote video width: {{ remoteVideoWidth }}px<br/>
     Remote video height: {{ remoteVideoHeight }}px<br/>
-    <p>
-      Logs<br />
-      <button v-on:click="clearLog">Clear log</button><br />
-      <textarea cols="100" rows="50" ref="logTextArea"></textarea>
-    </p>
   </div>
 </template>
 
@@ -24,7 +19,7 @@ import grpcModel from '../schema_node/rtc_signaling_service_pb';
 
 const GOOGLE_EMPTY =  new grpcModel.google.protobuf.Empty();
 const callHeader = new grpcModel.CallHeader();
-callHeader.setClientId(Date.now());
+callHeader.setClientId(Date.now().toString());
 
 export default {
   name: 'HelloWorld',
@@ -38,7 +33,7 @@ export default {
       that.remoteVideocHeight = this.videoHeight;
     });
 
-    this._grpcClient = grpcService.RtcSignalingClient(config.GRPC_API_BASE_URL);
+    this._grpcClient = new grpcService.RtcSignalingClient(config.GRPC_API_BASE_URL);
     this._debug = d('web');
   },
   methods: {
@@ -61,7 +56,6 @@ export default {
 
       if (this._signalStream) {
         try {
-          this._signalStream.removeAllListeners();
           this._signalStream.destroy();
         }
         catch (e) {
@@ -70,41 +64,56 @@ export default {
       }
 
       this._peerConnection = new RTCPeerConnection(configuration);
-      this._peerConnection
-        .addEventListener('icecandidate', (e) => {
-          // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
-          this._debug.log('On peer icecandidate event', e);
-          if (e.candidate) {
-            const iceJson = e.candidate.toSON();
-            this._debug.log('Sending .request.ice_candidate', e);
-            this._grpcClient.sendMessage(getIceCandidateRequestMessage(iceJson), (e) => {
-              if (e) this._debug.error(e);
-            });
-          }
-        })
-        .addEventListener('iceconnectionstatechange', () => {
-          this._debug.log('On peer iceconnectionstatechange');
-          this._debug.log(`connection.iceConnectionState=${this._peerConnection.iceConnectionState}`);
-        })
-        .addEventListener('track', (e) => {
-          this._debug.log('On peer track');
-          if (this.$refs.domVideoElement.srcObject !== e.streams[0]) {
-            this.$refs.domVideoElement.srcObject = e.streams[0]
-            this._debug.log('Added track to <video>');
-          }
-        });
+      this._peerConnection.icecandidate = (e) => {
+        // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
+        this._debug.log('On peer icecandidate event', e);
+        if (e.candidate) {
+          const iceJson = e.candidate.toSON();
+          this._debug.log('Sending .request.ice_candidate', e);
+          this._grpcClient.sendMessage(getIceCandidateRequestMessage(iceJson), (e) => {
+            if (e) this._debug.error(e);
+          });
+        }
+      };
+      this._peerConnection.iceconnectionstatechange = () => {
+        this._debug.log('On peer iceconnectionstatechange');
+        this._debug.log(`connection.iceConnectionState=${this._peerConnection.iceConnectionState}`);
+      };
+      this._peerConnection.track = (e) => {
+        this._debug.log('On peer track');
+        if (this.$refs.domVideoElement.srcObject !== e.streams[0]) {
+          this.$refs.domVideoElement.srcObject = e.streams[0]
+          this._debug.log('Added track to <video>');
+        }
+      };
       this._debug.log('Created peer connection and registered events');
 
       const callDebug = d(`${this._debug.ns}:subscribeIncomingMessage`);
       let answerSessionDescription;
       try {
-        callDebug.log('Calling');
+        callDebug.log('Opening stream');
         const subscribeIncomingMessageRequest = new grpcModel.SubscribeIncomingMessageRequest();
         subscribeIncomingMessageRequest.setCallHeader(callHeader);
         const call = this._grpcClient.subscribeIncomingMessage(subscribeIncomingMessageRequest);
-        call.on('data', async (_response) => {
-          const incomingMsg = _response.getMesssage();
+        let onSuccess;
+        call.on('end', function () {
+          callDebug.log('Call ends');
+        });
+        call.on('error', function (e) {
+          callDebug.error('Call error', e);
+          onSuccess(e);
+        });
 
+        const waitSuccess = BPromise.fromCallback((cb) => onSuccess = cb);
+        const onDataHandler = () => onSuccess();
+        call.on('data', onDataHandler);        
+        callDebug.log('Waiting success confirmation from server');
+        await waitSuccess;
+        callDebug.log('Server confirms success');
+        call.removeListener('data', onDataHandler);        
+        this._signalStream = call;
+
+        call.on('data', async (incomingMsg) => {
           if (incomingMsg.getNoop()) return;
 
           callDebug.log('Received incoming message');
@@ -126,15 +135,16 @@ export default {
 
                 callDebug.log('peer.createAnswer()');
                 answerSessionDescription = await this._peerConnection.createAnswer();
-                this.log('Sending request.answer_offer');
-                await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getAnswerOfferRequestMessage(answerSessionDescription.sdp), cb));
+                callDebug.log('Sending request.answer_offer');
+                await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getAnswerOfferRequestMessage(answerSessionDescription.sdp), {}, cb));
               }
               else if (response.getAnswerOffer()) {
                 callDebug.log('It .response.answer_offer');
                 callDebug.log('peer.setLocalDescription()');
-                await this.peerConnection.setLocalDescription(answerSessionDescription);
-                this.log('Sending request.confirm_answer');
-                await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getConfirmAnwerRequestMessage(), cb));
+                await this._peerConnection.setLocalDescription(answerSessionDescription);
+                callDebug.log('Sending request.confirm_answer');
+                await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getConfirmAnwerRequestMessage(), {}, cb));
+                callDebug.log('Completed peer handshaking!');
               }
               else {
                 callDebug.log('Unhandled message');
@@ -155,21 +165,12 @@ export default {
             callDebug.error('Error on handling incoming message', e);
           }
         });
-        call.on('end', function () {
-          callDebug.log('Call ends');
-        });
-        this._signalStream = call;
+
+        this._debug.log('Sending request.create_offer');
+        await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getCreateOfferRequestMessage(), {}, cb));
       }
       catch (e) {
         callDebug.error('Fatal error', e);
-      }
-
-      try {
-        this._debug.log('Sending request.create_offer');
-        await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getCreateOfferRequestMessage(), cb));
-      }
-      catch (e) {
-        this._debug.error('Error on sending request-create-offer', e);
       }
     }
   },
@@ -177,8 +178,7 @@ export default {
     return {
       env1: config.WEBRTC_ICE_SERVER_URLS,
       remoteVideoWidth: 0,
-      remoteVideoHeight: 0,
-      peerConnection: null
+      remoteVideoHeight: 0
     }
   }
 }

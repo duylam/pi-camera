@@ -2,7 +2,7 @@
 
 set -e # stop on error
 
-python_cmd=./.penv/bin/python
+python_cmd=`pwd`/.penv/bin/python
 if [ ! -f "$python_cmd" ] ; then
   python_cmd=python3
 
@@ -11,6 +11,5 @@ if [ ! -f "$python_cmd" ] ; then
   fi
 fi
 
-out_dir="./src/schema_python"
-bash ../../schema/scripts/compile_python.sh "`realpath $(which $python_cmd)`" "`realpath $out_dir`"
+bash ../../schema/scripts/compile_python.sh "`which $python_cmd`" "`pwd`/src/schema_python"
 

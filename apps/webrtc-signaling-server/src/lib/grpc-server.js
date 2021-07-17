@@ -10,7 +10,7 @@ const grpcServices = require('../schema_node/rtc_signaling_service_grpc_pb');
 const grpcModels = require('../schema_node/rtc_signaling_service_pb');
 
 // See values at https://github.com/grpc/grpc-node/blob/9acb1b657530c18e498ef7e6538c1234f33aee4f/packages/grpc-js/src/constants.ts#L18
-const GrpcStatusCodes = grpc.status;
+const GrpcStatusCode = grpc.status;
 
 class GrpcError extends Error {
   constructor(code, message) {
@@ -73,11 +73,12 @@ class GrpcServer {
 
           const ns = `[${clientId}]`
           debug.log(`${ns} Sending message to web client`);  
-          this._webClients[clientId].send(msg);
+          this._webClients[clientId].send(message);
         } 
         catch (ignored) {
           debug.error(`Error on processing. Skip the message`, ignored);  
         }
+        break;
       }
       case 'web-incoming-message': {
         const ns = `[${clientId}]`
@@ -105,6 +106,7 @@ class GrpcServer {
           }
           this._sendMessageToWebClient(clientId, msg);
         }
+        break;
       }
       default: {
         debug.log(`Unsupported type=${type}, ignore!`);
@@ -128,13 +130,14 @@ class GrpcServer {
 
   _createSendMessageImplementation() {
     const debug = d(`${this._debug.ns}:sendMessage`);
-    return async (req, done) => {
+    return (call, done) => {
       debug.log('Received a call');
 
       if (!this._piClient.attached) {
         return done(new GrpcError(GrpcStatusCode.ABORTED, 'Pi box went offline'));
       }
 
+      const req = call.request;
       const rtcRequest = req.getRequest();
       if (!rtcRequest) {
         return done(new GrpcError(GrpcStatusCode.INVALID_ARGUMENT, 'Missing field "request"'));
@@ -192,6 +195,9 @@ class GrpcServer {
         
       webClient.attach(call);
       debug.log('Attached the browser');
+      
+      webClient.sendNoop();
+      debug.log('Sent noop to inform that the stream is ready on server side');
     }
   }
 }
