@@ -4,7 +4,6 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 
 <!--TOC-->
 
-- [Table of Contents](#table-of-contents)
 - [1. Prerequisite](#1-prerequisite)
 - [2. Development setup](#2-development-setup)
 - [3. Coding workflow](#3-coding-workflow)
@@ -13,6 +12,7 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
   - [4.1 Record camera](#41-record-camera)
   - [4.2 Wrap mp4 containter](#42-wrap-mp4-containter)
   - [4.3 Check video format](#43-check-video-format)
+- [5. Technical notes](#5-technical-notes)
 
 <!--TOC-->
 
@@ -69,4 +69,5 @@ Run `bash poc/check-video-format/run.sh`
 
 - [Python generated from .proto](https://developers.google.com/protocol-buffers/docs/reference/python-generated)
 - [Python grpc example with asyncio module](https://github.com/grpc/grpc/blob/master/examples/python/route_guide/asyncio_route_guide_client.py)
+- [aiortc API doc](https://aiortc.readthedocs.io/en/stable/api.html#webrtc)
 
