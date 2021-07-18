@@ -16,7 +16,6 @@ class Camera:
            logging.debug('openning file')
            self._fh = open(os.path.join(os.getcwd(), 'video.h264'), 'rb')
 
-       logging.debug('reading file')
        captured_video_bytes = self._fh.read(1<<16)
        logging.debug("read %s bytes", len(captured_video_bytes))
 
@@ -26,22 +25,11 @@ class Camera:
            return
 
        packets = self._av_codec.parse(captured_video_bytes)
-       #logging.debug("parsed %s packets", len(packets))
        self._captured_video_frames = []
        for packet in packets:
            frames = self._av_codec.decode(packet)
-           #logging.debug("decoded %s frames", len(frames))
-
            for f in frames:
                self._captured_video_frames.append(f)
-
-       #logging.debug("made %s VideoFrames", len(self._captured_video_frames))
-
-       #for f in self._captured_video_frames:
-       #    logging.debug("**********")
-       #    for k, v in inspect.getmembers(f):
-       #        if not k.startswith('_'):
-       #            logging.debug("%s=%s", k, v)
 
    def get_video_video_frames(self):
        return self._captured_video_frames

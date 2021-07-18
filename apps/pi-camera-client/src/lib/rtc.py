@@ -102,7 +102,7 @@ class CameraStreamTrack(MediaStreamTrack):
            self._start = time.time()
            self._timestamp = 0
 
-       return self._start - self._timestamp
+       return self._timestamp
 
    #
    # Below methods are implementation for base class MediaStreamTrack

@@ -1,7 +1,7 @@
 <template>
   <div>
     <button v-on:click="start">Start/Restart</button><br />
-    <video style="background-color: #222" width="300" hieght="100" ref="domVideoElement" playsinline autoplay muted></video><br />
+    <video style="background-color: #222" width="600" hieght="300" ref="domVideoElement" playsinline autoplay muted></video><br />
     Remote video width: {{ remoteVideoWidth }}px<br/>
     Remote video height: {{ remoteVideoHeight }}px<br/>
   </div>
