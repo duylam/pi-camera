@@ -4,7 +4,8 @@ from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, R
 from aiortc.mediastreams import MediaStreamError
 #from aiortc.contrib.signaling import object_from_string
 from aiortc.sdp import candidate_from_sdp
-import json
+from av.frame import Frame
+import json, logging, time
 
 from lib import config
 
@@ -57,63 +58,79 @@ class RtcConnection:
   def close(self):
     self._pc.close()
 
+"""
+Follow implementation of PlayerStreamTrack
+at https://github.com/aiortc/aiortc/blob/d5d1d1f66c4c583a3d8ebf34f02d76bc77a6d137/src/aiortc/contrib/media.py#L161
+"""
 class CameraStreamTrack(MediaStreamTrack):
-    kind = "video"
+   kind = "video"
 
-    def __init__(self, frames_queue_size = 50):
-        super().__init__()
-        self._frames_queue = queue.Queue(maxsize=frames_queue_size)
+   def __init__(self, frames_queue_size = 50):
+       super().__init__()
+       self._start = None
+       self._frames_queue = queue.Queue(maxsize=frames_queue_size)
 
-    def add_video_frames(self, frames: set):
-        for f in frames:
-            # Any error on adding one frame is ignored since we're streaming from camera
-            try:
-                if self._frames_queue.full():
-                    # If the peer connection takes video frames slower than the producing from camera
-                    # then we just ignore the oldest frame
-                    self._frames_queue.get(timeout=0.1)
+   def add_video_frames(self, frames: set):
+       logging.debug("queue length before in add_video_frames %s", self._frames_queue.qsize())
+       for f in frames:
+           # Any error on adding one frame is ignored since we're streaming from camera
+           try:
+               if self._frames_queue.full():
+                   # If the peer connection takes video frames slower than the producing from camera
+                   # then we just ignore the oldest frame
+                   self._frames_queue.get(timeout=0.1)
 
-                self._frames_queue.put(f, timeout=0.1)
-            except:
-                pass
+               self._frames_queue.put(f, timeout=0.1)
+           except:
+               logging.exception('adding frame to queue error, try to add next')
+               pass
+       
+       logging.debug("queue length after in add_video_frames %s", self._frames_queue.qsize())
+
+   #
+   # Below methods are implementation for base class MediaStreamTrack
+   # 
+   async def recv(self) -> Frame:
+       if self.readyState != 'live':
+           raise MediaStreamError
+
+       frame = None
+       while True:
+           while self._frames_queue.empty():
+               # Deliver 20 fps
+               await asyncio.sleep(0.1)
+
+           try:
+               frame = self._frames_queue.get_nowait()
+               logging.debug('Got frame, checking time')
+               frame_time = frame.time
+               if frame_time is not None: break
+           except:
+               logging.exception('getting frame from queue error, trying to get next frame')
+               # Continue to read next frame if any error
+               #pass
+
+       if self._start is None:
+           self._start = time.time() - frame_time
+       else:
+           wait = self._start + frame_time - time.time()
+           await asyncio.sleep(wait)
+
+       return frame
 
 
-    #
-    # Below methods are implementation for base class MediaStreamTrack
-    # 
+   def stop(self) -> None:
+       super().stop()
 
-    async def recv(self):
-        if self.readyState != 'live':
-            raise MediaStreamError
-
-        frame = None
-        while True:
-            while self._frames_queue.empty():
-                # Deliver 20 fps
-                await asyncio.sleep(0.05)
-
-            try:
-                frame = self._frames_queue.get_nowait()
-                break
-            except:
-                # Continue to read next frame if any error
-                pass
-
-        return frame
-
-
-    def stop(self):
-        super().stop()
-
-        error_count = 0
-        while not self._frames_queue.empty():
-            try:
-                if error_count >= 3:
-                    # We might have leaked memory in queue contains items, but we can't
-                    # let the loop run infinitely
-                    break
-                self._frames_queue.get(block=False)
-            except:
-                error_count = error_count + 1
-                pass
+       error_count = 0
+       while not self._frames_queue.empty():
+           try:
+               if error_count >= 3:
+                   # We might have leaked memory in queue contains items, but we can't
+                   # let the loop run infinitely
+                   break
+               self._frames_queue.get(block=False)
+           except:
+               error_count = error_count + 1
+               pass
 
