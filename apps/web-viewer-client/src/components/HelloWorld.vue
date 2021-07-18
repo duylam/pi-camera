@@ -1,8 +1,7 @@
 <template>
   <div>
-    Env: {{ env1 }}<br />
     <button v-on:click="start">Start/Restart</button><br />
-    <video width="300" hieght="100" ref="domVideoElement" playsinline autoplay></video>
+    <video style="background-color: #222" width="300" hieght="100" ref="domVideoElement" playsinline autoplay muted></video><br />
     Remote video width: {{ remoteVideoWidth }}px<br/>
     Remote video height: {{ remoteVideoHeight }}px<br/>
   </div>
@@ -176,7 +175,6 @@ export default {
   },
   data: function () {
     return {
-      env1: config.WEBRTC_ICE_SERVER_URLS,
       remoteVideoWidth: 0,
       remoteVideoHeight: 0
     }

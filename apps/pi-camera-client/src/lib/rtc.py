@@ -5,7 +5,7 @@ from aiortc.mediastreams import MediaStreamError
 #from aiortc.contrib.signaling import object_from_string
 from aiortc.sdp import candidate_from_sdp
 from av.frame import Frame
-import json, logging, time
+import json, logging, time, fractions
 
 from lib import config
 
@@ -59,9 +59,13 @@ class RtcConnection:
     self._pc.close()
 
 """
-Follow implementation of PlayerStreamTrack
-at https://github.com/aiortc/aiortc/blob/d5d1d1f66c4c583a3d8ebf34f02d76bc77a6d137/src/aiortc/contrib/media.py#L161
+Follow implementation of VideoStreamTrack
+at https://github.com/aiortc/aiortc/blob/d5d1d1f66c4c583a3d8ebf34f02d76bc77a6d137/src/aiortc/mediastreams.py#L109
 """
+VIDEO_CLOCK_RATE = 90000
+VIDEO_PTIME = 1 / 20  # 20fps
+VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
+VIDEO_TIMESTAMP_DURATION = int(VIDEO_PTIME * VIDEO_CLOCK_RATE)
 class CameraStreamTrack(MediaStreamTrack):
    kind = "video"
 
@@ -69,9 +73,11 @@ class CameraStreamTrack(MediaStreamTrack):
        super().__init__()
        self._start = None
        self._frames_queue = queue.Queue(maxsize=frames_queue_size)
+       self._start = None
+       self._timestamp = None
 
    def add_video_frames(self, frames: set):
-       logging.debug("queue length before in add_video_frames %s", self._frames_queue.qsize())
+       #logging.debug("queue length before in add_video_frames %s", self._frames_queue.qsize())
        for f in frames:
            # Any error on adding one frame is ignored since we're streaming from camera
            try:
@@ -85,7 +91,18 @@ class CameraStreamTrack(MediaStreamTrack):
                logging.exception('adding frame to queue error, try to add next')
                pass
        
-       logging.debug("queue length after in add_video_frames %s", self._frames_queue.qsize())
+       #logging.debug("queue length after in add_video_frames %s", self._frames_queue.qsize())
+
+   async def _next_timestamp(self) -> int:
+       if self._timestamp:
+           self._timestamp += VIDEO_TIMESTAMP_DURATION
+           wait = self._start + (self._timestamp / VIDEO_CLOCK_RATE) - time.time()
+           await asyncio.sleep(wait)
+       else:
+           self._start = time.time()
+           self._timestamp = 0
+
+       return self._start - self._timestamp
 
    #
    # Below methods are implementation for base class MediaStreamTrack
@@ -97,27 +114,21 @@ class CameraStreamTrack(MediaStreamTrack):
        frame = None
        while True:
            while self._frames_queue.empty():
-               # Deliver 20 fps
-               await asyncio.sleep(0.1)
+               await asyncio.sleep(0.05)
 
            try:
                frame = self._frames_queue.get_nowait()
-               logging.debug('Got frame, checking time')
-               frame_time = frame.time
-               if frame_time is not None: break
+               break
            except:
                logging.exception('getting frame from queue error, trying to get next frame')
                # Continue to read next frame if any error
                #pass
 
-       if self._start is None:
-           self._start = time.time() - frame_time
-       else:
-           wait = self._start + frame_time - time.time()
-           await asyncio.sleep(wait)
+       pts = await self._next_timestamp()
+       frame.pts = pts
+       frame.time_base = VIDEO_TIME_BASE
 
        return frame
-
 
    def stop(self) -> None:
        super().stop()
