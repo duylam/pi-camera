@@ -125,7 +125,11 @@ class CameraStreamTrack(MediaStreamTrack):
                #pass
 
        pts = await self._next_timestamp()
+
+       # See https://github.com/PyAV-Org/PyAV/blob/9ac05d9ac902d71ecb2fe80f04dcae454008378c/av/frame.pyx#L80
        frame.pts = pts
+
+       # See https://github.com/PyAV-Org/PyAV/blob/9ac05d9ac902d71ecb2fe80f04dcae454008378c/av/frame.pyx#L113
        frame.time_base = VIDEO_TIME_BASE
 
        return frame
