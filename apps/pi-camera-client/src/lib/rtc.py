@@ -42,7 +42,6 @@ class RtcConnection:
     await self._pc.addIceCandidate(candidate)
 
   async def create_offer(self):
-    # https://pyav.org/docs/develop/cookbook/basics.html#parsing
     # https://github.com/jlaine/aiortc/blob/6edad395544348702e124d8e3f31a44a2a04654c/src/aiortc/contrib/media.py#L154
     self._pc.addTrack(self._camera_stream_track)
     session_description = await self._pc.createOffer()
@@ -90,6 +89,7 @@ class CameraStreamTrack(MediaStreamTrack):
         frame = None
         while True:
             while self._frames_queue.empty():
+                # Deliver 20 fps
                 await asyncio.sleep(0.05)
 
             try:

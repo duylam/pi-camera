@@ -64,22 +64,22 @@ export default {
       }
 
       this._peerConnection = new RTCPeerConnection(configuration);
-      this._peerConnection.icecandidate = (e) => {
+      this._peerConnection.onicecandidate = (e) => {
         // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
         this._debug.log('On peer icecandidate event', e);
         if (e.candidate) {
-          const iceJson = e.candidate.toSON();
-          this._debug.log('Sending .request.ice_candidate', e);
-          this._grpcClient.sendMessage(getIceCandidateRequestMessage(iceJson), (e) => {
+          const iceJson = e.candidate.toJSON();
+          this._debug.log('Sending .request.ice_candidate', iceJson);
+          this._grpcClient.sendMessage(getIceCandidateRequestMessage(JSON.stringify(iceJson)), {}, (e) => {
             if (e) this._debug.error(e);
           });
         }
       };
-      this._peerConnection.iceconnectionstatechange = () => {
+      this._peerConnection.oniceconnectionstatechange = () => {
         this._debug.log('On peer iceconnectionstatechange');
         this._debug.log(`connection.iceConnectionState=${this._peerConnection.iceConnectionState}`);
       };
-      this._peerConnection.track = (e) => {
+      this._peerConnection.ontrack = (e) => {
         this._debug.log('On peer track');
         if (this.$refs.domVideoElement.srcObject !== e.streams[0]) {
           this.$refs.domVideoElement.srcObject = e.streams[0]
@@ -127,20 +127,20 @@ export default {
 
               if (response.getCreateOffer()) {
                 callDebug.log('It .response.create_offer');
-                callDebug.log('peer.setRemoteDescription()');
+                callDebug.log('Calling peer.setRemoteDescription()');
                 await this._peerConnection.setRemoteDescription({
                   type: 'offer',
                   sdp: response.getCreateOffer()
                 });
 
-                callDebug.log('peer.createAnswer()');
+                callDebug.log('Calling peer.createAnswer()');
                 answerSessionDescription = await this._peerConnection.createAnswer();
                 callDebug.log('Sending request.answer_offer');
                 await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getAnswerOfferRequestMessage(answerSessionDescription.sdp), {}, cb));
               }
               else if (response.getAnswerOffer()) {
                 callDebug.log('It .response.answer_offer');
-                callDebug.log('peer.setLocalDescription()');
+                callDebug.log('Calling peer.setLocalDescription()');
                 await this._peerConnection.setLocalDescription(answerSessionDescription);
                 callDebug.log('Sending request.confirm_answer');
                 await BPromise.fromCallback((cb) => this._grpcClient.sendMessage(getConfirmAnwerRequestMessage(), {}, cb));

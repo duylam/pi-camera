@@ -71,9 +71,9 @@ class GrpcServer {
             clientId = message.getResponse().getCallHeader().getClientId();
           }
 
-          const ns = `[${clientId}]`
-          debug.log(`${ns} Sending message to web client`);  
+          const ns = `[web-${clientId}]`
           this._webClients[clientId].send(message);
+          debug.log(`${ns} Sent to web client`);  
         } 
         catch (ignored) {
           debug.error(`Error on processing. Skip the message`, ignored);  
@@ -81,7 +81,7 @@ class GrpcServer {
         break;
       }
       case 'web-incoming-message': {
-        const ns = `[${clientId}]`
+        const ns = `[web-${clientId}]`
         debug.log(`${ns} Got new web-incoming-message`);  
         try {
           this._piClient.send(message);
@@ -97,9 +97,9 @@ class GrpcServer {
           const msg = new grpcModels.RtcSignalingMessage();
           msg.setResponse(msgResponse);
 
-          debug.log(`${ns} Sending back error response now`);  
           try {
             this._webClients[clientId].send(msg);
+            debug.log(`${ns} Sent back error response now`);  
           }
           catch (ignored) {
             debug.error(`${ns} Error on sending back response, ignore`, ignored);
@@ -122,6 +122,7 @@ class GrpcServer {
       this._piClient.attach(call);
       this._piClient.on('message', (msg) => {
         if (!msg.getNoop()) {
+          debug.log('Received message from pi', msg.toObject());
           this._event.emit('message', {message: msg, type:'pi-incoming-message'});
         }
       });
@@ -153,6 +154,7 @@ class GrpcServer {
         return done(new GrpcError(GrpcStatusCode.INVALID_ARGUMENT, 'Missing field "request.call_header.client_id"'));
       }
 
+      debug.log(`Received message from web-${clientId}`, req.toObject());
       this._event.emit('message', {message: req, clientId, type:'web-incoming-message'});
 
       done(null, new grpcModels.google.protobuf.Empty());
@@ -194,10 +196,10 @@ class GrpcServer {
       }
         
       webClient.attach(call);
-      debug.log('Attached the browser');
+      debug.log(`Attached the browser for client_id=${clientId}`);
       
       webClient.sendNoop();
-      debug.log('Sent noop to inform that the stream is ready on server side');
+      debug.log(`Sent noop to inform that the stream ${clientId} is ready on server side`);
     }
   }
 }

@@ -1,4 +1,4 @@
-import logging, queue
+import logging, queue, asyncio
 
 from lib import Camera
 
@@ -31,5 +31,6 @@ async def run(outgoing_video_chunk_queue: queue.Queue):
         except KeyboardInterrupt:
             raise
         except:
-            logging.exception('Camera has fatal error, re-initializing it')
+            logging.exception('Camera has fatal error, re-initializing it after 2s')
+            await asyncio.sleep(2)
 
