@@ -62,19 +62,17 @@ class RtcConnection:
 Follow implementation of VideoStreamTrack
 at https://github.com/aiortc/aiortc/blob/d5d1d1f66c4c583a3d8ebf34f02d76bc77a6d137/src/aiortc/mediastreams.py#L109
 """
-VIDEO_CLOCK_RATE = 90000
-VIDEO_PTIME = 1 / 20  # 20fps
+VIDEO_CLOCK_RATE = 1000
+VIDEO_PTIME = 1/config.FRAMERATE
 VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
-VIDEO_TIMESTAMP_DURATION = int(VIDEO_PTIME * VIDEO_CLOCK_RATE)
+VIDEO_PRESENTATION_TIMESTAMP_CLOCK = int(VIDEO_PTIME * VIDEO_CLOCK_RATE)
 class CameraStreamTrack(MediaStreamTrack):
    kind = "video"
 
    def __init__(self, frames_queue_size = 50):
        super().__init__()
-       self._start = None
        self._frames_queue = queue.Queue(maxsize=frames_queue_size)
-       self._start = None
-       self._timestamp = None
+       self._timestamp: int = 0
 
    def add_video_frames(self, frames: set):
        #logging.debug("queue length before in add_video_frames %s", self._frames_queue.qsize())
@@ -86,23 +84,16 @@ class CameraStreamTrack(MediaStreamTrack):
                    # then we just ignore the oldest frame
                    self._frames_queue.get(timeout=0.1)
 
+               # See definition at https://github.com/PyAV-Org/PyAV/blob/9ac05d9ac902d71ecb2fe80f04dcae454008378c/av/frame.pyx#L113
+               f.time_base = VIDEO_TIME_BASE
+               f.pts = self._timestamp
                self._frames_queue.put(f, timeout=0.1)
            except:
                logging.exception('adding frame to queue error, try to add next')
-               pass
-       
+           finally:
+               self._timestamp += VIDEO_PRESENTATION_TIMESTAMP_CLOCK
+
        #logging.debug("queue length after in add_video_frames %s", self._frames_queue.qsize())
-
-   async def _next_timestamp(self) -> int:
-       if self._timestamp:
-           self._timestamp += VIDEO_TIMESTAMP_DURATION
-           wait = self._start + (self._timestamp / VIDEO_CLOCK_RATE) - time.time()
-           await asyncio.sleep(wait)
-       else:
-           self._start = time.time()
-           self._timestamp = 0
-
-       return self._timestamp
 
    #
    # Below methods are implementation for base class MediaStreamTrack
@@ -113,6 +104,7 @@ class CameraStreamTrack(MediaStreamTrack):
 
        frame = None
        while True:
+           logging.debug('waiting frame')
            while self._frames_queue.empty():
                await asyncio.sleep(0.05)
 
@@ -120,18 +112,9 @@ class CameraStreamTrack(MediaStreamTrack):
                frame = self._frames_queue.get_nowait()
                break
            except:
-               logging.exception('getting frame from queue error, trying to get next frame')
-               # Continue to read next frame if any error
-               #pass
+               logging.exception('******** getting frame from queue error, trying to get next frame')
 
-       pts = await self._next_timestamp()
-
-       # See https://github.com/PyAV-Org/PyAV/blob/9ac05d9ac902d71ecb2fe80f04dcae454008378c/av/frame.pyx#L80
-       frame.pts = pts
-
-       # See https://github.com/PyAV-Org/PyAV/blob/9ac05d9ac902d71ecb2fe80f04dcae454008378c/av/frame.pyx#L113
-       frame.time_base = VIDEO_TIME_BASE
-
+       logging.debug("frame.pts=%s", frame.pts)
        return frame
 
    def stop(self) -> None:

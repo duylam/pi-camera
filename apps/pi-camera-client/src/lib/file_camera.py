@@ -13,14 +13,13 @@ class Camera:
        await asyncio.sleep(1)
 
        if not self._fh or self._fh.closed:
-           logging.debug('openning file')
+           logging.debug('*************** openning file')
            self._fh = open(os.path.join(os.getcwd(), 'video.h264'), 'rb')
 
        captured_video_bytes = self._fh.read(1<<16)
-       logging.debug("read %s bytes", len(captured_video_bytes))
 
        if not captured_video_bytes:
-           logging.debug('closing file')
+           logging.debug('************** closing file')
            self._fh.close()
            return
 

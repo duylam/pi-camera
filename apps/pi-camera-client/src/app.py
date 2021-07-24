@@ -6,7 +6,10 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
 
 from dotenv import load_dotenv
+load_dotenv()  # take environment variables from .env file
+
 import logging, asyncio
+from lib import config
 from queue import Queue
 from tasks import run_camera,run_rtc_signaling,run_main
 
@@ -19,9 +22,15 @@ logging.basicConfig(
   level=logging.DEBUG,
   datefmt="%H:%M:%S")
 
-load_dotenv()  # take environment variables from .env file
+
+def print_envs():
+   logging.debug("Env vars:")
+   for attr_name in dir(config):
+       if not attr_name.startswith('__') and hasattr(config, attr_name):
+           logging.debug("- %s=%s", attr_name, getattr(config, attr_name))
 
 async def main():
+  print_envs()
   new_video_chunk_queue = Queue(20)
   incoming_rtc_request_queue = Queue(50)
   outgoing_rtc_response_queue = Queue(50)
