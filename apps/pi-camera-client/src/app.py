@@ -14,9 +14,6 @@ from lib import config
 from queue import Queue
 from tasks import run_camera, run_rtc_signaling, run_main
 
-# TODO:
-# 2. Clean up log message
-# 3. Make sure the python runs as long-running process (auto healing)
 logging.basicConfig(
     # Format at https://docs.python.org/3/library/logging.html?highlight=logging#logrecord-attributes
     format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",

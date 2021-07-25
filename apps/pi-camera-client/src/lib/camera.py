@@ -2,7 +2,8 @@ import logging, io, asyncio, picamera, av
 from lib import const, config
 
 class Camera:
-    def __init__(self, video_resolution = config.VIDEO_RESOLUTION):
+    def __init__(self, debug_ns: str, video_resolution = config.VIDEO_RESOLUTION):
+        self._logger = logging.getLogger("{}.camera_module".format(debug_ns))
         self._pi_camera = picamera.PiCamera(resolution=video_resolution, framerate=config.FRAMERATE)
         self._pi_camera_buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._pi_camera_buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)

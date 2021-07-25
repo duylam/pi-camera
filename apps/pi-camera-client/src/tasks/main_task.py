@@ -11,7 +11,8 @@ async def run(
   incoming_rtc_request_queue,
   outgoing_rtc_response_queue
 ):
-    logger = logging.getLogger("{}.main_task".format(config.ROOT_LOGGING_NAMESPACE))
+    debug_ns = "{}.main_task".format(config.ROOT_LOGGING_NAMESPACE)
+    logger = logging.getLogger(debug_ns)
 
     WEBRTC_VIDEO_TRACK_BUFFER_SIZE = config.CAMERA_BUFFER_SIZE*4
 
@@ -24,17 +25,15 @@ async def run(
         logger.info('Started loop')
         try:
             while True:
-                # TODO: add timestamp of created time and auto remove peer connection with state
-                # non connected since UDP doesn't know the other peer (browser) refreshes
                 closed_peer_connections = set(filter(lambda c: (c.closed), peer_connections))
 
                 # Most of times that the loop is running, connections are usually stay openning. So to
                 # avoid to create new set unneccessaily, we keep the set as is if no connection closing
                 closed_peer_connections_count = len(closed_peer_connections)
                 if closed_peer_connections_count > 0:
-                    logger.debug("Found {} closed peer connections", closed_peer_connections_count)
+                    logger.debug("Found %s closed peer connections", closed_peer_connections_count)
                     for pc in peer_connections:
-                        logger.debug("Closing peer id {}", pc.client_id)
+                        logger.debug("Closing peer id %s", pc.client_id)
                         await pc.close()
 
                     logger.debug('Removing closed peer connections')
@@ -49,7 +48,7 @@ async def run(
                     except asyncio.exceptions.CancelledError:
                         raise
                     except:
-                        logger.exception('Error on sending a batch of video frames to peer connections. Continue to next batch')
+                        logger.warning('Error on sending a batch of video frames to peer connections. Continue to next batch')
 
                 while not incoming_rtc_request_queue.empty():
                     incoming_msg = incoming_rtc_request_queue.get()
@@ -72,8 +71,10 @@ async def run(
                         err_msg = None
                         offer = None
                         try:
-                            cn = RtcConnection(client_id)
+                            cn = RtcConnection(client_id, debug_ns)
                             offer = await cn.create_offer()
+
+                            logger.debug('Adding new peer connection to list')
                             peer_connections.add(cn)
                         except asyncio.exceptions.CancelledError:
                             raise
@@ -134,7 +135,7 @@ async def run(
                 except asyncio.exceptions.CancelledError:
                     raise
                 except:
-                    logger.exception('Warning: failed to send hearthbeat message')
+                    logger.warning('Failed to send hearthbeat message')
 
                 await asyncio.sleep(sleep_in_second)
 
