@@ -1,83 +1,61 @@
-import logging
-import threading
-import sys
-import io
-import os
-import picamera
-import subprocess
-import time
-import utils
+import sys, os
 
+# The proto compiler for Python language is designed for Python 2 import mechanics.
+# Per the comment at https://github.com/protocolbuffers/protobuf/issues/1491#issuecomment-772720912,
+# the change in sys.path below is a workaroud for Python 3
+sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
+
+# Take environment variables from .env file for local development
+from dotenv import load_dotenv
+load_dotenv()
+
+import logging, asyncio
+from lib import config
+from queue import Queue
+from tasks import run_camera, run_rtc_signaling, run_main
+
+# TODO:
+# 1. Add namespace for component
+# 2. Clean up log message
+# 3. Make sure the python runs as long-running process (auto healing)
 logging.basicConfig(
   format="%(asctime)s [%(levelname)s]: %(message)s",
   level=logging.DEBUG,
   datefmt="%H:%M:%S")
 
-def main():
-  KB = 1024
-  camera = picamera.PiCamera()
-  mp4_file = io.open('./final.mp4', mode='wb', buffering=100*KB)
-  ffmpeg_process = subprocess.Popen([
-    'ffmpeg', '-v', 'quiet', # hide info text
-    '-i', '-' # receive .h264 from stdin
-    ,'-codec', 'copy', '-movflags', 'frag_keyframe+empty_moov', # todo: temp fix for using .mov file only
-    '-f','mp4','pipe:1' # write .mp4 to stdout
-  ], stdin=subprocess.PIPE, stdout=mp4_file, bufsize=10*1024*KB)
+def print_envs():
+   logging.info("Env vars:")
+   for attr_name in dir(config):
+       if not attr_name.startswith('__'):
+           attr_value = getattr(config, attr_name)
+           if type(attr_value) in (int, str):
+               logging.info("- %s=%s", attr_name, attr_value)
 
-  buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=5*1024*KB)
-  buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=5*1024*KB)
+async def main():
+  print_envs()
+  new_video_chunk_queue = Queue(20)
+  incoming_rtc_request_queue = Queue(50)
+  outgoing_rtc_response_queue = Queue(50)
 
   try:
-    count = 1
-
-    # Set the quantization parameter which will cause the video encoder to use VBR (variable bit-rate) encoding.
-    # This can be considerably more efficient especially in mostly static scenes (which can be important when recording to memory)
-    camera.start_recording(buffer_stream_1, format='h264', quantization=23)
-    while True:
-      # Only sleep in 1s, camera can produce data exceeding
-      # buffer size on longer sleep time. It produces around
-      # 400KB data in 1 second
-      camera.wait_recording(1)
-
-      current_stream = buffer_stream_1
-      next_stream = buffer_stream_2
-      if buffer_stream_2.tell() > 0:
-        current_stream = buffer_stream_2
-        next_stream = buffer_stream_1
-
-      next_stream.seek(0)
-      camera.split_recording(next_stream) # wait for camera to flushing current_stream
-
-      current_stream.seek(0)
-      video_bytes = current_stream.read()
-
-      logging.debug("Camera produces %d bytes", len(video_bytes))
-
-      if video_bytes: ffmpeg_process.stdin.write(video_bytes)
-
-      if count > 2:
-        break
-      else:
-        count = count + 1
+    logging.debug('Starting tasks')
+    await asyncio.gather(
+        run_camera(outgoing_video_chunk_queue=new_video_chunk_queue),
+        run_rtc_signaling(
+            request_queue=incoming_rtc_request_queue,
+            response_queue=outgoing_rtc_response_queue
+        ),
+        run_main(
+            new_video_chunk_queue=new_video_chunk_queue,
+            incoming_rtc_request_queue=incoming_rtc_request_queue,
+            outgoing_rtc_response_queue=outgoing_rtc_response_queue
+        )
+    )
+  except KeyboardInterrupt:
+    logging.debug('Received exit, exiting')
   except:
-    logging.exception("Fatal exception")
-  finally:
-    # Release resources, the order is matter
-    if camera.recording: camera.stop_recording()
-    camera.close()
-
-    logging.debug("Camera closed")
-
-    if not ffmpeg_process.poll():
-      logging.debug("Sending SIGTERM to ffmpeg process")
-      ffmpeg_process.terminate()
-      logging.debug("Waiting ffmpeg for exiting")
-      ffmpeg_process.wait()
-
-    if not mp4_file.closed:
-      logging.debug("Closing file")
-      mp4_file.close()
+    logging.exception('Fatal exception')
 
 if __name__ == "__main__":
-  main()
+  asyncio.run(main())
 

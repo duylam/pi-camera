@@ -6,19 +6,23 @@
 
 # Temp dir for installing dependencies
 vendors/
+.penv/
 
 # python, node
 *.pyc
 node_modules/
+schema_python/
+schema_node/
 dist/
+apps/pi-camera-client/.env
 .env.local
 .env.*.local
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+build/
 
 # vim editor
-*.swp
-*.swo
+*.sw[pon]
 

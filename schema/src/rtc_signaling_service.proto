@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+service RtcSignaling {
+  // For the Pi client to communicate signaling messages with other peers
+  rpc SubscribeMessage(stream RtcSignalingMessage) returns (stream RtcSignalingMessage) {}
+
+  // For the browser to send signaling message requests
+  rpc SendMessage(RtcSignalingMessage) returns (google.protobuf.Empty) {}
+
+  // For the browser to receive signaling message responses
+  rpc SubscribeIncomingMessage(SubscribeIncomingMessageRequest) returns (stream RtcSignalingMessage) {}
+}
+
+message CallHeader {
+  string client_id = 1;
+}
+
+message SubscribeIncomingMessageRequest {
+  CallHeader call_header = 1;
+}
+
+message RtcSignalingMessage {
+  message Request {
+    CallHeader call_header = 1;
+
+    oneof type {
+      google.protobuf.Empty create_offer = 10; 
+      string answer_offer = 11; 
+      google.protobuf.Empty confirm_answer = 12; // no response required
+      string ice_candidate = 13; // no response required
+    }
+  }
+
+  message Response {
+    message Error {
+      string error_message = 1; 
+    }
+
+    CallHeader call_header = 1;
+    Error error = 2;
+  
+    oneof type {
+      string create_offer = 10; 
+      google.protobuf.Empty answer_offer = 11; 
+    }
+  }
+
+  oneof type {
+    Request request = 1;
+    Response response = 2;
+    google.protobuf.Empty noop = 3; // for heartbeat to keep connection alive, no response
+  }
+}
+

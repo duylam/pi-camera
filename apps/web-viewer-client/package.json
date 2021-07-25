@@ -4,20 +4,30 @@
   "private": true,
   "scripts": {
     "build": "NODE_ENV=production vue-cli-service build",
-    "update-toc": "markdown-toc -i README.md"
+    "update-toc": "markdown-toc -i README.md",
+    "compile-proto": "bash ./scripts/compile_proto.sh",
+    "postinstall": "npm run compile-proto",
+    "start": "npx vue-cli-service serve"
   },
   "devDependencies": {
+    "@vue/cli": "^4.5.13",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.0.0",
-    "markdown-toc": "^1.2.0",
-    "@vue/cli": "^4.5.13",
+    "axios": "^0.21.1",
     "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
     "core-js": "^3.6.5",
+    "debug": "^4.3.2",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^7.0.0",
+    "google-protobuf": "^3.17.3",
+    "grpc-web": "^1.2.1",
+    "lodash": "^4.17.21",
+    "markdown-toc": "^1.2.0",
     "vue": "^3.0.0",
-    "eslint-plugin-vue": "^7.0.0"
+    "bluebird": "^3.7.2",
+    "vue-axios": "^3.2.4"
   },
   "eslintConfig": {
     "root": true,

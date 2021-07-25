@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e # stop on error
+
+schema_root_dir="`dirname $(dirname $0)`"
+out_dir="$1"
+
+validate()
+{
+  if ! command -v node &> /dev/null; then
+    echo "Missing node"
+    exit -1
+  fi
+  
+  if [ -z "$out_dir" ]; then
+    echo "Usage: $0 /path/to/out/dir/"
+    exit -1
+  fi
+}
+
+validate
+
+rm -rf $out_dir || true
+mkdir $out_dir
+
+schema_root_dir=`pwd`/$schema_root_dir
+cd $schema_root_dir
+npm i
+
+npx grpc_tools_node_protoc -I $schema_root_dir/src/ --js_out=import_style=commonjs,binary:$out_dir --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$out_dir --plugin=protoc-gen-grpc-web=$schema_root_dir/node_modules/grpc-tools/bin/protoc-gen-grpc-web $schema_root_dir/src/rtc_signaling_service.proto 
+
+echo "Finished!"
+

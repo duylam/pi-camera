@@ -1,0 +1,14 @@
+version: '3'
+services:
+  envoy-grpc-web-proxy:
+    image: envoyproxy/envoy:v1.14.4
+    container_name: envoy-grpc-web-proxy
+    restart: unless-stopped
+    ports:
+      - "4001:8000"
+      - "9901"
+    command: ['-c', '/etc/envoy/envoy.yaml', '--log-level', 'debug']
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+      - ./log/:/var/log/envoy/
+
