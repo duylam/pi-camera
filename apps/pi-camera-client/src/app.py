@@ -5,13 +5,14 @@ import sys, os
 # the change in sys.path below is a workaroud for Python 3
 sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
 
+# Take environment variables from .env file for local development
 from dotenv import load_dotenv
-load_dotenv()  # take environment variables from .env file
+load_dotenv()
 
 import logging, asyncio
 from lib import config
 from queue import Queue
-from tasks import run_camera,run_rtc_signaling,run_main
+from tasks import run_camera, run_rtc_signaling, run_main
 
 # TODO:
 # 1. Add namespace for component
@@ -22,12 +23,13 @@ logging.basicConfig(
   level=logging.DEBUG,
   datefmt="%H:%M:%S")
 
-
 def print_envs():
-   logging.debug("Env vars:")
+   logging.info("Env vars:")
    for attr_name in dir(config):
-       if not attr_name.startswith('__') and hasattr(config, attr_name):
-           logging.debug("- %s=%s", attr_name, getattr(config, attr_name))
+       if not attr_name.startswith('__'):
+           attr_value = getattr(config, attr_name)
+           if type(attr_value) in (int, str):
+               logging.info("- %s=%s", attr_name, attr_value)
 
 async def main():
   print_envs()

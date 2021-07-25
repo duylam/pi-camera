@@ -32,5 +32,5 @@ g. To install libraries: `npm i`
 
 # 3. Technical notes
 
-- [WebRTC API doc](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
+- [WebRTC signaling workflow](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling)
 

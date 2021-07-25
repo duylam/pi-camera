@@ -28,14 +28,23 @@ async def run(
                # Most of times that the loop is running, connections are usually stay openning. So to
                # avoid to create new set unneccessaily, we keep the set as is if no connection closing
                if len(closed_peer_connections) > 0:
-                   logging.debug('Found closed peer connection, removing them')
+                   logging.debug('Found closed peer connections')
+                   for pc in peer_connections:
+                       logging.debug("closing peer %s", pc.client_id)
+                       await pc.close()
+
+                   logging.debug('Removing peer connections')
                    peer_connections = peer_connections ^ closed_peer_connections
 
                while not new_video_chunk_queue.empty():
-                   video_frames = new_video_chunk_queue.get()
-                   for pc in peer_connections:
-                     if pc.ready:
-                       pc.append_video_frames(video_frames)
+                   try:
+                       video_frames = new_video_chunk_queue.get_nowait()
+                       for pc in peer_connections:
+                           if pc.ready:
+                               pc.append_video_frames(video_frames)
+                   except:
+                       # Ignore error and continue on next video frame batch
+                       pass
 
                while not incoming_rtc_request_queue.empty():
                    incoming_msg = incoming_rtc_request_queue.get()

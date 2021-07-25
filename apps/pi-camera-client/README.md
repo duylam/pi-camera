@@ -74,8 +74,8 @@ Run `bash poc/check-video-format/run.sh`
 
 - [Python generated from .proto](https://developers.google.com/protocol-buffers/docs/reference/python-generated)
 - [Python grpc example with asyncio module](https://github.com/grpc/grpc/blob/master/examples/python/route_guide/asyncio_route_guide_client.py)
-- [aiortc API doc](https://aiortc.readthedocs.io/en/stable/api.html#webrtc)
 - [Sample .h264 video files](https://www.fastvdo.com/H.264.html)
+- [WebRTC signaling workflow](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling)
 
 # 6. Camera module troubleshooting
 

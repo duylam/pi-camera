@@ -1,5 +1,4 @@
-import logging, io, asyncio
-import picamera, av
+import logging, io, asyncio, picamera, av
 from lib import const, config
 
 class Camera:
@@ -11,10 +10,10 @@ class Camera:
         self._av_codec = None
 
     async def capture_recording(self) -> None:
-        # Only sleep in 1s, camera can produce data exceeding
+        # Should sleep less 1s, camera can produce data exceeding
         # buffer size on longer sleep time. It produces around
         # 400KB data in 1 second
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
 
         # Raise error if the PiCamera has any error so that caller can re-init it again
         self._pi_camera.wait_recording(0)
@@ -39,7 +38,7 @@ class Camera:
             frames = self._av_codec.decode(packet)
             self._captured_video_frames = self._captured_video_frames | set(frames)
 
-    def get_video_video_frames(self):
+    def get_video_video_frames(self) -> set:
         return self._captured_video_frames
 
     def __enter__(self):
@@ -54,6 +53,8 @@ class Camera:
         try:
             if self._pi_camera.recording: self._pi_camera.stop_recording()
             self._pi_camera.close()
+
+            # TODO: how to release self._av_codec
         except:
             pass
 

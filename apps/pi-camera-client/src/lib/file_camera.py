@@ -1,8 +1,6 @@
 import av, os, logging, io, asyncio
 from lib import const, config
 
-import inspect
-
 class Camera:
    def __init__(self, video_resolution = config.VIDEO_RESOLUTION, framerate = config.FRAMERATE):
        self._fh = None
@@ -10,16 +8,14 @@ class Camera:
        self._av_codec = None
 
    async def capture_recording(self) -> None:
-       await asyncio.sleep(1)
+       await asyncio.sleep(0.1)
 
        if not self._fh or self._fh.closed:
-           logging.debug('*************** openning file')
            self._fh = open(os.path.join(os.getcwd(), 'video.h264'), 'rb')
 
        captured_video_bytes = self._fh.read(1<<16)
 
        if not captured_video_bytes:
-           logging.debug('************** closing file')
            self._fh.close()
            return
 

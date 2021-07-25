@@ -19,8 +19,8 @@ async def run(outgoing_video_chunk_queue: queue.Queue):
                     if len(video_frames) > 0:
                         try:
                             if outgoing_video_chunk_queue.full():
-                                logging.warning('The video queue is full, remove oldest chunk')
-                                outgoing_video_chunk_queue.get(block=True,timeout=1)
+                                logging.debug('The video queue is full, remove oldest chunk')
+                                outgoing_video_chunk_queue.get_nowait()
 
                             outgoing_video_chunk_queue.put_nowait(video_frames)
                         except KeyboardInterrupt:

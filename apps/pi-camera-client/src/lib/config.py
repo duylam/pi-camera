@@ -1,4 +1,5 @@
 import os
+
 from lib import const
 
 GRPC_HOSTNAME = os.getenv('PI_MEETING_GRPC_HOSTNAME', 'localhost')

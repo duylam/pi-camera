@@ -10,7 +10,7 @@ async def run(request_queue: queue.Queue, response_queue: queue.Queue):
         while True:
             try:
                 while not response_queue.empty():
-                    res = response_queue.get()
+                    res = response_queue.get_nowait()
                     yield res
 
                 await asyncio.sleep(0.1)
