@@ -4,3 +4,4 @@ grpcio==1.38.1
 protobuf==3.17.3
 av==8.0.3
 python-dotenv==0.18.0
+autopep8==1.5.7
