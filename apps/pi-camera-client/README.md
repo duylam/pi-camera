@@ -54,6 +54,7 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 1. To run specific test method: `python3 -m unittest test.core.test_circular_stream.TestCircularStream.test_read_over_num_when_availale`
 1. To add new lib as production dependeny: `poetry add <name>`. For adding as development one: `poetry add --dev <name>`
 1. Format code: `autopep8  src/ test/`. And the commit changed files
+1. Create build package: `poetry build --format sdist`
 
 # 4. Other Proof of Concept app
 
