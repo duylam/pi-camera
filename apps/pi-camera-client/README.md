@@ -41,7 +41,7 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 # 3. Coding workflow
 
 1. (Optional) Enter to the virtual enviroment. Below commands are supposed to run inside the virtual env
-1. To install Python libraries: `pip3 install -r requirements.txt`
+1. Install libraries: `pip3 install -r requirements.txt && poetry install`
 1. Compile proto to .py: `bash scripts/compile_proto.sh`
 1. Launch the app: `python3 src/app.py`
 
@@ -52,10 +52,8 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 1. To update TOC in README, run `md_toc -p github README.md`
 1. To run unit test: `bash scripts/test.sh`
 1. To run specific test method: `python3 -m unittest test.core.test_circular_stream.TestCircularStream.test_read_over_num_when_availale`
-1. To add new lib to `requirements.txt`
-  - Install new Python libraries: `pip3 install --user <name>`
-  - Get the version of new installed package: `pip3 show <name>`
-  - And then manually update `requirements.txt` 
+1. To add new lib as production dependeny: `poetry add <name>`. For adding as development one: `poetry add --dev <name>`
+1. Format code: `autopep8  src/ test/`. And the commit changed files
 
 # 4. Other Proof of Concept app
 

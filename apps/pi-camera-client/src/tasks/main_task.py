@@ -1,4 +1,5 @@
-import logging, asyncio
+import logging
+import asyncio
 
 from google.protobuf import empty_pb2
 from schema_python import rtc_signaling_service_pb2
@@ -6,10 +7,11 @@ from lib import RtcConnection, config
 
 GOOGLE_EMPTY = empty_pb2.Empty()
 
+
 async def run(
-  new_video_chunk_queue,
-  incoming_rtc_request_queue,
-  outgoing_rtc_response_queue
+    new_video_chunk_queue,
+    incoming_rtc_request_queue,
+    outgoing_rtc_response_queue
 ):
     debug_ns = "{}.main_task".format(config.ROOT_LOGGING_NAMESPACE)
     logger = logging.getLogger(debug_ns)
@@ -25,13 +27,15 @@ async def run(
         logger.info('Started loop')
         try:
             while True:
-                closed_peer_connections = set(filter(lambda c: (c.closed), peer_connections))
+                closed_peer_connections = set(
+                    filter(lambda c: (c.closed), peer_connections))
 
                 # Most of times that the loop is running, connections are usually stay openning. So to
                 # avoid to create new set unneccessaily, we keep the set as is if no connection closing
                 closed_peer_connections_count = len(closed_peer_connections)
                 if closed_peer_connections_count > 0:
-                    logger.debug("Found %s closed peer connections", closed_peer_connections_count)
+                    logger.debug("Found %s closed peer connections",
+                                 closed_peer_connections_count)
                     for pc in peer_connections:
                         logger.debug("Closing peer id %s", pc.client_id)
                         await pc.close()
@@ -48,7 +52,8 @@ async def run(
                     except asyncio.exceptions.CancelledError:
                         raise
                     except:
-                        logger.warning('Error on sending a batch of video frames to peer connections. Continue to next batch')
+                        logger.warning(
+                            'Error on sending a batch of video frames to peer connections. Continue to next batch')
 
                 while not incoming_rtc_request_queue.empty():
                     incoming_msg = incoming_rtc_request_queue.get()
@@ -56,15 +61,18 @@ async def run(
                         logger.debug('Expect .request field, skip the message')
 
                     request = incoming_msg.request
-                    logger.debug("Request payload: {}".format(request.__str__()))
+                    logger.debug(
+                        "Request payload: {}".format(request.__str__()))
 
                     if not request.HasField('call_header'):
-                        logger.debug('Expect .request.call_header field, skip the message')
+                        logger.debug(
+                            'Expect .request.call_header field, skip the message')
                         continue
 
                     client_id = request.call_header.client_id
                     if not client_id:
-                        logger.debug('Expect .request.call_header.client_id field, skip the message')
+                        logger.debug(
+                            'Expect .request.call_header.client_id field, skip the message')
                         continue
 
                     if request.WhichOneof('type') == 'create_offer':
@@ -80,16 +88,20 @@ async def run(
                             raise
                         except:
                             err_msg = str(sys.exc_info()[0])
-                            logger.exception('Error on creating RTC connection')
+                            logger.exception(
+                                'Error on creating RTC connection')
                         finally:
                             try:
-                                msg = get_message_response_create_offer(client_id,create_offer=offer, err_msg=err_msg)
+                                msg = get_message_response_create_offer(
+                                    client_id, create_offer=offer, err_msg=err_msg)
                                 outgoing_rtc_response_queue.put(msg, timeout=2)
-                                logger.debug('Dispatched SDP of create_offer to queue')
+                                logger.debug(
+                                    'Dispatched SDP of create_offer to queue')
                             except asyncio.exceptions.CancelledError:
                                 raise
                             except:
-                                logger.exception('Error writing to signaling response queue')
+                                logger.exception(
+                                    'Error writing to signaling response queue')
                     elif request.WhichOneof('type') == 'answer_offer':
                         err_msg = None
                         for c in peer_connections:
@@ -100,17 +112,20 @@ async def run(
                                     raise
                                 except:
                                     err_msg = str(sys.exc_info()[0])
-                                    logger.exception('Error on procesing RTC answer')
+                                    logger.exception(
+                                        'Error on procesing RTC answer')
                                 finally:
                                     break
 
                         try:
-                            outgoing_rtc_response_queue.put(get_message_response_answer_offer(client_id, err_msg), timeout=2)
+                            outgoing_rtc_response_queue.put(
+                                get_message_response_answer_offer(client_id, err_msg), timeout=2)
                             logger.debug('Dispatched confirmation to queue')
                         except asyncio.exceptions.CancelledError:
                             raise
                         except:
-                            logger.exception('Error writing to signaling response queue')
+                            logger.exception(
+                                'Error writing to signaling response queue')
                     elif request.WhichOneof('type') == 'ice_candidate':
                         for c in peer_connections:
                             if c.client_id == client_id:
@@ -119,7 +134,8 @@ async def run(
                                 except asyncio.exceptions.CancelledError:
                                     raise
                                 except:
-                                    logger.exception('Error on procesing ICE candidate')
+                                    logger.exception(
+                                        'Error on procesing ICE candidate')
                                 finally:
                                     break
 
@@ -142,9 +158,10 @@ async def run(
         except asyncio.exceptions.CancelledError:
             raise
         except:
-           logger.exception('Fatal error, skip to next loop')
+            logger.exception('Fatal error, skip to next loop')
 
-def get_message_response_create_offer(client_id, create_offer, err_msg = None):
+
+def get_message_response_create_offer(client_id, create_offer, err_msg=None):
     call_header = rtc_signaling_service_pb2.CallHeader()
     call_header.client_id = client_id
     response = rtc_signaling_service_pb2.RtcSignalingMessage.Response()
@@ -161,7 +178,8 @@ def get_message_response_create_offer(client_id, create_offer, err_msg = None):
     message.response.CopyFrom(response)
     return message
 
-def get_message_response_answer_offer(client_id, err_msg = None):
+
+def get_message_response_answer_offer(client_id, err_msg=None):
     call_header = rtc_signaling_service_pb2.CallHeader()
     call_header.client_id = client_id
     response = rtc_signaling_service_pb2.RtcSignalingMessage.Response()
@@ -177,4 +195,3 @@ def get_message_response_answer_offer(client_id, err_msg = None):
     message = rtc_signaling_service_pb2.RtcSignalingMessage()
     message.response.CopyFrom(response)
     return message
-

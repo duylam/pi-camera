@@ -1,8 +1,13 @@
-import av, os, logging, io, asyncio
+import av
+import os
+import logging
+import io
+import asyncio
 from lib import const, config
 
+
 class Camera:
-    def __init__(self, debug_ns: str, video_resolution = config.VIDEO_RESOLUTION):
+    def __init__(self, debug_ns: str, video_resolution=config.VIDEO_RESOLUTION):
         self._logger = logging.getLogger("{}.camera_file".format(debug_ns))
         self._fh = None
         self._captured_video_frames = set([])
@@ -14,7 +19,7 @@ class Camera:
         if not self._fh or self._fh.closed:
             self._fh = open(os.path.join(os.getcwd(), 'video.h264'), 'rb')
 
-        captured_video_bytes = self._fh.read(1<<16)
+        captured_video_bytes = self._fh.read(1 << 16)
 
         if not captured_video_bytes:
             self._fh.close()
@@ -23,9 +28,9 @@ class Camera:
         packets = self._av_codec.parse(captured_video_bytes)
         self._captured_video_frames = []
         for packet in packets:
-           frames = self._av_codec.decode(packet)
-           for f in frames:
-               self._captured_video_frames.append(f)
+            frames = self._av_codec.decode(packet)
+            for f in frames:
+                self._captured_video_frames.append(f)
 
     def get_video_video_frames(self):
         return self._captured_video_frames
@@ -38,5 +43,4 @@ class Camera:
         try:
             self._fh.close()
         except:
-           pass
-
+            pass

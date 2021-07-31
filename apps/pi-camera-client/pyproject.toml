@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "pi-camera-client"
+version = "0.1.0"
+description = ""
+authors = ["Duy Lam <duylamphuong@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+aiortc = "^1.2.1"
+grpcio = "^1.39.0"
+protobuf = "^3.17.3"
+av = "^8.0.3"
+python-dotenv = "^0.19.0"
+
+[tool.poetry.dev-dependencies]
+md-toc = "^8.0.0"
+autopep8 = "^1.5.7"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.autopep8]
+in-place = true
+recursive = true
+exclude = "schema_python/"

@@ -1,18 +1,16 @@
-import sys, os
+import asyncio
+import logging
+from tasks import run_camera, run_rtc_signaling, run_main
+from queue import Queue
+from lib import config
+import sys
+import os
 
 # The proto compiler for Python language is designed for Python 2 import mechanics.
 # Per the comment at https://github.com/protocolbuffers/protobuf/issues/1491#issuecomment-772720912,
 # the change in sys.path below is a workaroud for Python 3
 sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
 
-# Take environment variables from .env file for local development
-from dotenv import load_dotenv
-load_dotenv()
-
-import logging, asyncio
-from lib import config
-from queue import Queue
-from tasks import run_camera, run_rtc_signaling, run_main
 
 logging.basicConfig(
     # Format at https://docs.python.org/3/library/logging.html?highlight=logging#logrecord-attributes
@@ -22,6 +20,7 @@ logging.basicConfig(
     level=logging.WARNING)
 root_logger = logging.getLogger(config.ROOT_LOGGING_NAMESPACE)
 
+
 def print_envs():
     root_logger.info("Env vars:")
     for attr_name in dir(config):
@@ -30,8 +29,10 @@ def print_envs():
             if type(attr_value) in (int, str):
                 root_logger.info("- %s=%s", attr_name, attr_value)
 
+
 def config_logging():
     root_logger.setLevel(config.LOG_LEVEL_NUM)
+
 
 async def main():
     config_logging()
@@ -62,4 +63,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

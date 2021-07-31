@@ -1,4 +1,9 @@
-import json, logging, time, fractions, queue, asyncio
+import json
+import logging
+import time
+import fractions
+import queue
+import asyncio
 
 from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, RTCSessionDescription
 from aiortc.mediastreams import MediaStreamError
@@ -7,11 +12,12 @@ from av.frame import Frame
 
 from lib import config
 
+
 class RtcConnection:
     def __init__(self, client_id: str, debug_ns: str):
         ns = "{}.rtc_{}".format(debug_ns, client_id)
         self._logger = logging.getLogger(ns)
-        self._camera_stream_track = CameraStreamTrack(debug_ns = ns)
+        self._camera_stream_track = CameraStreamTrack(debug_ns=ns)
         self._answer_confirmed = False
 
         # See https://aiortc.readthedocs.io/en/stable/api.html#webrtc
@@ -63,6 +69,7 @@ class RtcConnection:
         self._logger.debug('Closing peer connection')
         await self._pc.close()
 
+
 """
 Customize code from VideoStreamTrack
 at https://github.com/aiortc/aiortc/blob/d5d1d1f66c4c583a3d8ebf34f02d76bc77a6d137/src/aiortc/mediastreams.py#L109
@@ -71,10 +78,12 @@ VIDEO_CLOCK_RATE = 1000
 VIDEO_PTIME = 1/config.FRAMERATE
 VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 VIDEO_PRESENTATION_TIMESTAMP_CLOCK = int(VIDEO_PTIME * VIDEO_CLOCK_RATE)
+
+
 class CameraStreamTrack(MediaStreamTrack):
     kind = "video"
 
-    def __init__(self, debug_ns:str, frames_queue_size = 50):
+    def __init__(self, debug_ns: str, frames_queue_size=50):
         super().__init__()
 
         self._logger = logging.getLogger("{}.media_track".format(debug_ns))
@@ -84,6 +93,7 @@ class CameraStreamTrack(MediaStreamTrack):
     """
     Receives list of av.Frame representing for video from Camera module
     """
+
     def add_video_frames(self, frames: []) -> None:
         if self.readyState != 'live':
             return
@@ -104,13 +114,14 @@ class CameraStreamTrack(MediaStreamTrack):
                 f.pts = self._timestamp
                 self._frames_queue.put_nowait(f)
             except:
-                self._logger.warning('Failed to add video frame from Camera to sending queue, skip this video frame')
+                self._logger.warning(
+                    'Failed to add video frame from Camera to sending queue, skip this video frame')
             finally:
                 self._timestamp += VIDEO_PRESENTATION_TIMESTAMP_CLOCK
 
    #
    # Below methods are implementation for base class MediaStreamTrack
-   # 
+   #
     async def recv(self) -> Frame:
         if self.readyState != 'live':
             raise MediaStreamError
@@ -128,4 +139,3 @@ class CameraStreamTrack(MediaStreamTrack):
                 pass
 
         return frame
-
