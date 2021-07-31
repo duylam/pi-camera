@@ -3,14 +3,18 @@
     <div class="level container">
       <div class="level-left">
         <div class="level-item">
-          <button @click="start" class="button">Join</button>
+          <button @click="onConnectClick" class="button" :class="{'is-loading': rtcConnectState === 'connecting'}">
+            <span v-if="rtcConnectState === 'connected'">Leave</span>
+            <span v-else>Join</span>
+          </button>
         </div>
         <div class="level-item">
-          <font-awesome-icon icon="plug" size="2x" /><br />
-          <font-awesome-icon icon="plug" size="2x" class="has-text-grey-lighter" /><br />
+          <font-awesome-icon icon="plug" size="2x" :class="{'has-text-grey-lighter': rtcConnectState !== 'connected'}" />
         </div>
         <div class="level-item">
-          <span class="has-text-dark">status</span>
+          <span class="has-text-dark" v-if="rtcConnectState === 'disconnected'">Disconnected</span>
+          <span class="has-text-dark" v-if="rtcConnectState === 'connecting'">Connecting</span>
+          <span class="has-text-info" v-if="rtcConnectState === 'connected'">Connected</span>
         </div>
       </div>
     </div>
@@ -117,7 +121,15 @@ export default {
         callDebug.error('Error on handling incoming message', e);
       }
     },
-    start: async function() {
+    onConnectClick: function () {
+      if (this.rtcConnectState === 'connected') {
+        this.disconnect();
+      }
+      else {
+        this.connect();
+      }
+    },
+    disconnect: function () {
       if (this._peerConnection) {
         try {
           this._peerConnection.close();
@@ -125,8 +137,11 @@ export default {
         catch (e) {
           this._debug.error('Closing previous peer connection fails', e);
         }
+        
+        this.rtcConnectState = 'disconnected';
       }
-
+    },
+    connect: async function() {
       this._peerConnection = new RTCPeerConnection(peerConnectionConfiguration);
       this._peerConnection.onicecandidate = async (e) => {
         // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
@@ -145,6 +160,7 @@ export default {
       this._peerConnection.oniceconnectionstatechange = () => {
         this._debug.log('On peer iceconnectionstatechange');
         this._debug.log(`connection.iceConnectionState=${this._peerConnection.iceConnectionState}`);
+        this.rtcConnectState = this._peerConnection.iceConnectionState;
       };
       this._peerConnection.ontrack = (e) => {
         this._debug.log('On peer track');
@@ -157,6 +173,7 @@ export default {
 
       try {
         this._debug.log('Sending request.create_offer');
+        this.rtcConnectState = 'connecting';
         await this._signalingClient.sendCreateOffer();
       }
       catch (e) {
@@ -166,8 +183,7 @@ export default {
   },
   data: function () {
     return {
-      remoteVideoWidth: 0,
-      remoteVideoHeight: 0
+      rtcConnectState: 'disconnected' // disconnected, connecting, connected
     }
   }
 }
