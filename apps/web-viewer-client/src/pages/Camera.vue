@@ -1,10 +1,22 @@
 <template>
-  <div>
-    <button v-on:click="start">Start/Restart</button><br />
-    <video style="background-color: #222" width="600" hieght="300" ref="domVideoElement" playsinline autoplay muted></video><br />
-    Remote video width: {{ remoteVideoWidth }}px<br/>
-    Remote video height: {{ remoteVideoHeight }}px<br/>
-  </div>
+  <section class="section">
+    <div class="level container">
+      <div class="level-left">
+        <div class="level-item">
+          <button @click="start" class="button is-primary">Join</button>
+        </div>
+        <div class="level-item">
+          <font-awesome-icon icon="person-booth" size="2x" /> 
+        </div>
+        <div class="level-item">
+          <span class="has-text-dark">status</span>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <video style="background-color: #222" width="1200" hieght="900" ref="domVideoElement" playsinline autoplay muted></video>
+    </div>
+  </section>
 </template>
 
 <script>
@@ -218,20 +230,3 @@ function getConfirmAnwerRequestMessage() {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>

@@ -30,7 +30,9 @@ g. To install libraries: `npm i`
 
   - To lint: `npx vue-cli-service lint`
 
-# 3. Technical notes
+# 3. Technical stack
 
 - [WebRTC signaling workflow](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling)
+- [CSS with Bulma framework](https://bulma.io/documentation/)
+- [Icons with Font Awesome](https://fontawesome.com/v5.15/icons?d=gallery&p=2&m=free) ([<font-awesome-icon> reference](https://www.npmjs.com/package/@fortawesome/vue-fontawesome))
 
