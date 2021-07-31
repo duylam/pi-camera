@@ -3,10 +3,11 @@
     <div class="level container">
       <div class="level-left">
         <div class="level-item">
-          <button @click="start" class="button is-primary">Join</button>
+          <button @click="start" class="button">Join</button>
         </div>
         <div class="level-item">
-          <font-awesome-icon icon="person-booth" size="2x" /> 
+          <font-awesome-icon icon="plug" size="2x" /><br />
+          <font-awesome-icon icon="plug" size="2x" class="has-text-grey-lighter" /><br />
         </div>
         <div class="level-item">
           <span class="has-text-dark">status</span>

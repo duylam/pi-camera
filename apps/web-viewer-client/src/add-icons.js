@@ -1,5 +1,5 @@
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faPersonBooth } from '@fortawesome/free-solid-svg-icons/faPersonBooth';
+import { faPlug } from '@fortawesome/free-solid-svg-icons/faPlug';
 
-library.add(faPersonBooth);
+library.add(faPlug);
 
