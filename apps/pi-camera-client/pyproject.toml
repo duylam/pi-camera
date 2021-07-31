@@ -24,4 +24,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.autopep8]
 in-place = true
 recursive = true
-exclude = "schema_python/"
+exclude = "schema_python/,app.py"

@@ -131,10 +131,11 @@ export default {
       this._peerConnection.onicecandidate = async (e) => {
         // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
         this._debug.log('On peer icecandidate event', e);
-        if (e.candidate) {
+        const candidate = e.candidate;
+        if (candidate) {
           try {
-            this._debug.log('Sending icecandidate', e.candidate);
-            await this._signalingClient.sendIceCandidate(e.candidate);
+            this._debug.log('Sending icecandidate', candidate);
+            await this._signalingClient.sendIceCandidate(candidate);
           }
           catch (e) {
             this._debug.error('Sending icecandidate fails', e);

@@ -1,8 +1,3 @@
-import asyncio
-import logging
-from tasks import run_camera, run_rtc_signaling, run_main
-from queue import Queue
-from lib import config
 import sys
 import os
 
@@ -11,6 +6,11 @@ import os
 # the change in sys.path below is a workaroud for Python 3
 sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
 
+import asyncio
+import logging
+from tasks import run_camera, run_rtc_signaling, run_main
+from queue import Queue
+from lib import config
 
 logging.basicConfig(
     # Format at https://docs.python.org/3/library/logging.html?highlight=logging#logrecord-attributes
@@ -19,7 +19,6 @@ logging.basicConfig(
     # Depress debug log from other modules by default
     level=logging.WARNING)
 root_logger = logging.getLogger(config.ROOT_LOGGING_NAMESPACE)
-
 
 def print_envs():
     root_logger.info("Env vars:")
