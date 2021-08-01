@@ -5,7 +5,7 @@ import fractions
 import queue
 import asyncio
 
-from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, RTCSessionDescription
+from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, RTCSessionDescription, RTCConfiguration, RTCIceServer
 from aiortc.mediastreams import MediaStreamError
 from aiortc.sdp import candidate_from_sdp
 from av.frame import Frame
@@ -21,7 +21,7 @@ class RtcConnection:
         self._answer_confirmed = False
 
         # See https://aiortc.readthedocs.io/en/stable/api.html#webrtc
-        self._pc = RTCPeerConnection()
+        self._pc = RTCPeerConnection(RTCConfiguration([RTCIceServer(['stun:192.168.1.105:3478'])]))
         self._client_id = client_id
 
     @property
