@@ -3,8 +3,8 @@
     <div class="level container">
       <div class="level-left">
         <div class="level-item">
-          <button @click="onConnectClick" class="button" :class="{'is-loading': rtcConnectState === 'connecting'}">
-            <span v-if="rtcConnectState === 'connected'">Leave</span>
+          <button @click="connect" class="button" :class="{'is-loading': rtcConnectState === 'connecting'}">
+            <span v-if="rtcConnectState === 'connected'">Re-join</span>
             <span v-else>Join</span>
           </button>
         </div>
@@ -16,6 +16,9 @@
           <span class="has-text-dark" v-if="rtcConnectState === 'connecting'">Connecting</span>
           <span class="has-text-info" v-if="rtcConnectState === 'connected'">Connected</span>
         </div>
+        <div class="level-item">
+          <span v-if="rtcConnectError">Error on signaling process. Raw message: <span class="has-text-danger">{{ rtcConnectError }}</span></span>
+        </div>
       </div>
     </div>
     <div class="container">
@@ -25,7 +28,8 @@
 </template>
 
 <script>
-import $ from 'lodash';
+import noop from 'lodash/noop';
+import isEmpty from 'lodash/isEmpty';
 import SignalingClient from '../lib/signaling-client';
 import * as config from '../lib/config';
 import d from '../lib/debug';
@@ -34,7 +38,7 @@ const clientId = Date.now();
 const debugNs = `CameraPage-${clientId}`;
 const peerConnectionConfiguration = {};
 
-if (!$.isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
+if (!isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
   peerConnectionConfiguration.iceServers = [{
     urls: config.WEBRTC_ICE_SERVER_URLS
   }];
@@ -58,13 +62,6 @@ export default {
     catch (e) {
       this._debug.error('Fatal error', e);
     }
-  },
-  async mounted() {
-    const that = this;
-    this.$refs.domVideoElement.addEventListener('loadedmetadata', function() {
-      that.remoteVideoWidth = this.videoWidth;
-      that.remoteVideocHeight = this.videoHeight;
-    });
   },
   methods: {
     onSignalingClientMessage: async function (callDebug, incomingMsg) {
@@ -119,19 +116,16 @@ export default {
       }
       catch (e) {
         callDebug.error('Error on handling incoming message', e);
-      }
-    },
-    onConnectClick: function () {
-      if (this.rtcConnectState === 'connected') {
+        this.rtcConnectError = e.message;
         this.disconnect();
-      }
-      else {
-        this.connect();
       }
     },
     disconnect: function () {
       if (this._peerConnection) {
         try {
+          this._peerConnection.onicecandidate = noop;
+          this._peerConnection.onconnectionstatechange = noop;
+          this._peerConnection.ontrack = noop;
           this._peerConnection.close();
         }
         catch (e) {
@@ -139,9 +133,16 @@ export default {
         }
         
         this.rtcConnectState = 'disconnected';
+
+        // Reset video playing to receive new video stream
+        this.$refs.domVideoElement.pause();
+        this.$refs.domVideoElement.currentTime = 0;
       }
     },
     connect: async function() {
+      const that = this;
+      this.disconnect();
+      this.rtcConnectError = '';
       this._peerConnection = new RTCPeerConnection(peerConnectionConfiguration);
       this._peerConnection.onicecandidate = async (e) => {
         // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
@@ -157,10 +158,16 @@ export default {
           }
         }
       };
-      this._peerConnection.oniceconnectionstatechange = () => {
-        this._debug.log('On peer iceconnectionstatechange');
-        this._debug.log(`connection.iceConnectionState=${this._peerConnection.iceConnectionState}`);
-        this.rtcConnectState = this._peerConnection.iceConnectionState;
+      this._peerConnection.onconnectionstatechange = function () {
+        that._debug.log(`On peer onconnectionstatechange: ${this.connectionState}`);
+        switch(this.connectionState) {
+          case 'connected':
+            that.rtcConnectState = this.connectionState;
+            break;
+          case 'disconnected': case 'failed': case 'closed':
+            that.rtcConnectState = 'disconnected';
+            break;
+        }
       };
       this._peerConnection.ontrack = (e) => {
         this._debug.log('On peer track');
@@ -178,12 +185,15 @@ export default {
       }
       catch (e) {
         this._debug.error('request.create_offer fails', e);
+        this.rtcConnectError = e.message;
+        this.disconnect();
       }
     }
   },
   data: function () {
     return {
-      rtcConnectState: 'disconnected' // disconnected, connecting, connected
+      rtcConnectState: 'disconnected', // enums: disconnected, connecting, connected
+      rtcConnectError: ''
     }
   }
 }
