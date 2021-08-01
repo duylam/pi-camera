@@ -14,6 +14,7 @@ node_modules/
 schema_python/
 schema_node/
 dist/
+app/
 apps/pi-camera-client/.env
 .env.local
 .env.*.local
