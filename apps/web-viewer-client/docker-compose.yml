@@ -1,0 +1,18 @@
+version: '3'
+services:
+  #######################
+  # Launch nginx to serve static files in HTTP at port 8081
+  #######################
+  static-file-server:
+    image: nginx:1.21.1-alpine
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "10"
+    ports:
+      - "8081:80"
+    volumes:
+      - ./www/:/usr/share/nginx/html:ro
+

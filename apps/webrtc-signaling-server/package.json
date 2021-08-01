@@ -11,6 +11,8 @@
     "update-toc": "markdown-toc -i README.md",
     "compile-proto": "bash ./scripts/compile_proto.sh",
     "postinstall": "npm run compile-proto",
+    "build": "bash ./scripts/build.sh",
+    "dockerize": "bash ./scripts/dockerize.sh",
     "start": "npm run compile-proto && nodemon -x 'node -r dotenv-flow/config' src/index.js"
   },
   "dependencies": {

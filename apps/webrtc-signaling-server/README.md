@@ -31,5 +31,7 @@ PI_MEETING_HEARTBEAT_INTERVAL_MS=5000
 1. To update TOC in README, run `npm run update-toc`.
 1. To compile .proto to nodejs, run `npm run compile-proto`.
 1. To install new library: `npm i -P <name>`.
+1. To create build package: `npm run build`.
+1. To create docker image: `npm run dockerize`.
 1. To turn on debug for gRPC, run `GRPC_VERBOSITY=DEBUG GRPC_TRACE=all npm start`. See [doc](https://github.com/grpc/grpc/blob/master/doc/environment_variables.md)
 

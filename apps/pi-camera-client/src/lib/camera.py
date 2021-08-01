@@ -1,11 +1,20 @@
-import logging, io, asyncio, picamera, av
+import logging
+import io
+import asyncio
+import picamera
+import av
 from lib import const, config
 
+
 class Camera:
-    def __init__(self, video_resolution = config.VIDEO_RESOLUTION):
-        self._pi_camera = picamera.PiCamera(resolution=video_resolution, framerate=config.FRAMERATE)
-        self._pi_camera_buffer_stream_1 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
-        self._pi_camera_buffer_stream_2 = io.BufferedRandom(io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
+    def __init__(self, debug_ns: str, video_resolution=config.VIDEO_RESOLUTION):
+        self._logger = logging.getLogger("{}.camera_module".format(debug_ns))
+        self._pi_camera = picamera.PiCamera(
+            resolution=video_resolution, framerate=config.FRAMERATE)
+        self._pi_camera_buffer_stream_1 = io.BufferedRandom(
+            io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
+        self._pi_camera_buffer_stream_2 = io.BufferedRandom(
+            io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._captured_video_frames = set([])
         self._av_codec = None
 
@@ -21,11 +30,12 @@ class Camera:
         current_stream = self._pi_camera_buffer_stream_1
         next_stream = self._pi_camera_buffer_stream_2
         if self._pi_camera_buffer_stream_2.tell() > 0:
-          current_stream = self._pi_camera_buffer_stream_2
-          next_stream = self._pi_camera_buffer_stream_1
+            current_stream = self._pi_camera_buffer_stream_2
+            next_stream = self._pi_camera_buffer_stream_1
 
         next_stream.seek(0)
-        self._pi_camera.split_recording(next_stream) # wait for camera to flushing current_stream
+        # wait for camera to flushing current_stream
+        self._pi_camera.split_recording(next_stream)
 
         current_stream.seek(0)
         captured_video_bytes = current_stream.read()
@@ -36,7 +46,8 @@ class Camera:
         self._captured_video_frames = set([])
         for packet in packets:
             frames = self._av_codec.decode(packet)
-            self._captured_video_frames = self._captured_video_frames | set(frames)
+            self._captured_video_frames = self._captured_video_frames | set(
+                frames)
 
     def get_video_video_frames(self) -> set:
         return self._captured_video_frames
@@ -45,16 +56,17 @@ class Camera:
         # quality: For the 'h264' format, use values between 10 and 40 where 10 is extremely
         # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
         # encoding).
-        self._pi_camera.start_recording(self._pi_camera_buffer_stream_1, format='h264', quality=23)
+        self._pi_camera.start_recording(
+            self._pi_camera_buffer_stream_1, format='h264', quality=23)
         self._av_codec = av.CodecContext.create('h264', 'r')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
-            if self._pi_camera.recording: self._pi_camera.stop_recording()
+            if self._pi_camera.recording:
+                self._pi_camera.stop_recording()
             self._pi_camera.close()
 
             # TODO: how to release self._av_codec
         except:
             pass
-
