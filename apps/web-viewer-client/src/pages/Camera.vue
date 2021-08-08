@@ -22,7 +22,7 @@
       </div>
     </div>
     <div class="container">
-      <video style="background-color: #222" width="1200" hieght="900" ref="domVideoElement" playsinline autoplay muted></video>
+      <video style="background-color: #222" width="900" height="700" ref="domVideoElement" playsinline autoplay muted></video>
     </div>
   </section>
 </template>

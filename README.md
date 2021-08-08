@@ -8,5 +8,3 @@ The software is made from 03 components:
 
 Consult README in `apps` folder for how to run in local machine (required Raspberry Pi 3+ with Camera module)
 
-docker run --rm -ti -p 3478:3478/udp rrim/stuntman-server
-

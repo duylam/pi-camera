@@ -1,5 +1,16 @@
 version: '3'
 services:
+  stun:
+    image: rwgrim/stuntman-server
+    container_name: stun
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "10"
+    ports:
+      - "3478:3478/udp"
   envoy-grpc-web-proxy:
     image: envoyproxy/envoy:v1.14.4
     container_name: envoy-grpc-web-proxy
