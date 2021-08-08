@@ -32,5 +32,5 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Required while installing python libs
-sudo apt-get install -r libffi-dev
+sudo apt-get install -y libffi-dev
 
