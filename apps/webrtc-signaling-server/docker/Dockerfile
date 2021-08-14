@@ -7,5 +7,5 @@ ENTRYPOINT ["node"]
 CMD ["index.js"]
 
 COPY ./app/ /app/
-RUN npm install
+RUN npm install --production
 

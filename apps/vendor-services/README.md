@@ -6,7 +6,7 @@
 
 ## 2.1 Run local
 
-`bash scripts/start.sh`
+`bash scripts/dev-start.sh`
 
 - GRPC Web proxy listens on 4001 and proxies to 4000
 

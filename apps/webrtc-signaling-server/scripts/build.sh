@@ -1,6 +1,6 @@
 #!/bin/bash
 
-npm run compile-proto
+npm i
 rm -rf build || true
 mkdir build
 cp -r package.json package-lock.json src/ build/

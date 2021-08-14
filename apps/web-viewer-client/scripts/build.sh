@@ -1,5 +1,6 @@
 #!/bin/bash
 
+npm i
 NODE_ENV=production vue-cli-service build
 rm -rf ./www || true
 mkdir ./www

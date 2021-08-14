@@ -9,12 +9,16 @@ services:
       options:
         max-size: "10m"
         max-file: "10"
+    networks:
+      - pi-network
     ports:
       - "3478:3478/udp"
   envoy-grpc-web-proxy:
     image: envoyproxy/envoy:v1.14.4
     container_name: envoy-grpc-web-proxy
     restart: unless-stopped
+    networks:
+      - pi-network
     logging:
       driver: json-file
       options:
@@ -27,4 +31,8 @@ services:
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml
       - ./log/:/var/log/envoy/
+
+networks:
+  pi-network:
+    external: true
 
