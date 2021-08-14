@@ -21,7 +21,7 @@ class RtcConnection:
         self._answer_confirmed = False
 
         # See https://aiortc.readthedocs.io/en/stable/api.html#webrtc
-        self._pc = RTCPeerConnection(RTCConfiguration([RTCIceServer(['stun:192.168.1.105:3478'])]))
+        self._pc = RTCPeerConnection(RTCConfiguration([RTCIceServer(config.ICE_SERVER_URLS)]))
         self._client_id = client_id
 
     @property
