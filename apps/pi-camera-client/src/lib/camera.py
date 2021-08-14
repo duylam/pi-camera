@@ -12,7 +12,6 @@ class Camera:
         self._cam_buffer = io.BytesIO()
         self._logger = logging.getLogger("{}.camera_module".format(debug_ns))
         self._pi_camera = picamera.PiCamera()
-        self._pi_camera.resolution = config.VIDEO_RESOLUTION
         self._pi_camera.framerate = config.FRAMERATE
         self._pi_camera_buffer_stream_1 = io.BufferedRandom(
             io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
@@ -61,7 +60,7 @@ class Camera:
                 self._captured_video_frames = self._captured_video_frames | set(
                     frames)
 
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.01)
 
     def get_video_video_frames(self) -> set:
         return self._captured_video_frames
@@ -79,7 +78,11 @@ class Camera:
         # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
         # encoding).
         self._pi_camera.start_recording(
-            self, profile='high', format='h264', quantization=config.VIDEO_QUANTIZATION_OPTION)
+            self, format='h264',
+            # See https://www.rgb.com/h264-profiles
+            profile='baseline',
+            resize= config.VIDEO_RESOLUTION,
+            quality=config.VIDEO_QUALITY_OPTION)
         self._av_codec = av.CodecContext.create('h264', 'r')
         return self
 
