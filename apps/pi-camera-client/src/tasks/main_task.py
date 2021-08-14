@@ -7,6 +7,9 @@ from lib import RtcConnection, config
 
 GOOGLE_EMPTY = empty_pb2.Empty()
 
+# The interval duration needs to make sure for sending video frames
+# with expected rates
+INTERVAL_LOOP_MS = 1000 / config.FRAMERATE
 
 async def run(
     new_video_chunk_queue,
@@ -19,7 +22,7 @@ async def run(
     WEBRTC_VIDEO_TRACK_BUFFER_SIZE = config.CAMERA_BUFFER_SIZE*4
 
     peer_connections = set([])
-    sleep_in_second = config.MAIN_TASK_INTERVAL_DURATION / 1000
+    sleep_in_second = INTERVAL_LOOP_MS / 1000
     noop_msg = rtc_signaling_service_pb2.RtcSignalingMessage()
     noop_msg.noop.CopyFrom(GOOGLE_EMPTY)
     logger.info('Started')

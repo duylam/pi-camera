@@ -74,11 +74,11 @@ class RtcConnection:
 Customize code from VideoStreamTrack
 at https://github.com/aiortc/aiortc/blob/d5d1d1f66c4c583a3d8ebf34f02d76bc77a6d137/src/aiortc/mediastreams.py#L109
 """
-VIDEO_CLOCK_RATE = 1000
+VIDEO_CLOCK_RATE = 90000
 VIDEO_PTIME = 1/config.FRAMERATE
 VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 VIDEO_PRESENTATION_TIMESTAMP_CLOCK = int(VIDEO_PTIME * VIDEO_CLOCK_RATE)
-
+WAIT_FOR_NEW_FRAME_SECOND = 1000/config.FRAMERATE
 
 class CameraStreamTrack(MediaStreamTrack):
     kind = "video"
@@ -130,7 +130,7 @@ class CameraStreamTrack(MediaStreamTrack):
         while True:
             # Make sure frames are available to send to other peer
             while self._frames_queue.empty():
-                await asyncio.sleep(VIDEO_PTIME)
+                await asyncio.sleep(WAIT_FOR_NEW_FRAME_SECOND)
 
             try:
                 frame = self._frames_queue.get_nowait()
@@ -139,3 +139,4 @@ class CameraStreamTrack(MediaStreamTrack):
                 pass
 
         return frame
+

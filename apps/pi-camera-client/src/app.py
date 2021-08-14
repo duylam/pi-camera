@@ -17,7 +17,7 @@ logging.basicConfig(
     format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
 
     # Depress debug log from other modules by default
-    level=logging.WARNING)
+    level=config.LOG_LEVEL_NUM)
 root_logger = logging.getLogger(config.ROOT_LOGGING_NAMESPACE)
 
 def print_envs():
@@ -30,7 +30,8 @@ def print_envs():
 
 
 def config_logging():
-    root_logger.setLevel(config.LOG_LEVEL_NUM)
+    for name in config.QUIET_LOGGER_NAMES.split(','):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
 async def main():
