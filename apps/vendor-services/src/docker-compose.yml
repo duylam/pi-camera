@@ -13,9 +13,9 @@ services:
       - pi-network
     ports:
       - "3478:3478/udp"
-  envoy-grpc-web-proxy:
+  grpc-web-proxy:
     image: envoyproxy/envoy:v1.14.4
-    container_name: envoy-grpc-web-proxy
+    container_name: grpc-web-proxy
     restart: unless-stopped
     networks:
       - pi-network
