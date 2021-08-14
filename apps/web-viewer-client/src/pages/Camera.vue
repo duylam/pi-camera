@@ -38,9 +38,9 @@ const clientId = Date.now();
 const debugNs = `CameraPage-${clientId}`;
 const peerConnectionConfiguration = {};
 
-if (isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
+if (!isEmpty(config.WEBRTC_ICE_SERVER_URLS)) {
   peerConnectionConfiguration.iceServers = [{
-    urls: 'stun:192.168.1.105:3478?transport=udp'
+    urls: config.WEBRTC_ICE_SERVER_URLS
   }];
 }
 
