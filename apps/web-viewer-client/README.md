@@ -32,7 +32,8 @@ VUE_APP_GRPC_API_BASE_URL="http://localhost:4001" \
   VUE_APP_WEBRTC_ICE_SERVER_URLS="stun:localhost:3478?transport=udp" \ # optional
   npm run build
 ```
-1. To run [Vue CLI](https://cli.vuejs.org/guide/): `npx vue-cli-service help`. Some common commands
+
+5. To run [Vue CLI](https://cli.vuejs.org/guide/): `npx vue-cli-service help`. Some common commands
 
   - To lint: `npx vue-cli-service lint`
 

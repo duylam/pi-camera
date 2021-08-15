@@ -24,6 +24,10 @@ class RtcConnection:
         self._pc = RTCPeerConnection(RTCConfiguration([RTCIceServer(config.ICE_SERVER_URLS)]))
         self._client_id = client_id
 
+        @self._pc.on("connectionstatechange")
+        def on_connectionstatechange():
+            self._logger.debug("[Event: connectionstatechange] Connection state is %s" % self._pc.connectionState)
+
     @property
     def closed(self) -> bool:
         return self._pc.connectionState == 'closed' or self._pc.connectionState == 'failed'

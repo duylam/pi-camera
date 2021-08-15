@@ -85,6 +85,7 @@ async def run(
                             cn = RtcConnection(client_id, debug_ns)
                             offer = await cn.create_offer()
 
+                            logger.debug('create-offer SDP: %s' % offer)
                             logger.debug('Adding new peer connection to list')
                             peer_connections.add(cn)
                         except asyncio.exceptions.CancelledError:

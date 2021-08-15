@@ -12,5 +12,5 @@
 
 ## 2.2 Build
 
-`bash scripts/build.sh`
+- Run `bash scripts/build.sh` which will produce `build` forder to run. The folder has `start.sh` to launch services, see that file for environment variables
 

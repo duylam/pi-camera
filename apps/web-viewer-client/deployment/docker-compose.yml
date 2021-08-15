@@ -3,8 +3,9 @@ services:
   #######################
   # Launch nginx to serve static files in HTTP at port 8081
   #######################
-  static-file-server:
+  web-viewer-server:
     image: nginx:1.21.1-alpine
+    container_name: web-viewer-server
     restart: unless-stopped
     logging:
       driver: json-file

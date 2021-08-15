@@ -6,5 +6,7 @@ rm -rf ./www || true
 mkdir ./www
 mv dist/* ./www/
 mv ./www dist/
-cp docker-compose.yml dist/
+cp -r deployment/ dist/
+
+echo "Done, check ./dist folder"
 
