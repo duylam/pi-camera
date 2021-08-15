@@ -43,7 +43,15 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 1. (Optional) Enter to the virtual enviroment. Below commands are supposed to run inside the virtual env
 1. Install libraries: `pip3 install -r requirements.txt && poetry install`
 1. Compile proto to .py: `bash scripts/compile_proto.sh`
-1. Launch the app: `python3 src/app.py`
+
+**To launch on Pi box**
+
+Launch the app: `python3 src/app.py`
+
+**To launch on non Pi box (macOS, Ubuntu machine)**
+
+- Edit `src/lib/__init__.py` to change the Camera class to use `stub_camera` module 
+- Launch the app: `python3 src/app.py`
 
 # 4. Other commands
 

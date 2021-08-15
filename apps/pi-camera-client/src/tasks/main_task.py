@@ -151,14 +151,14 @@ async def run(
                 try:
                     # Send heartbeat to detect disconnected network
                     outgoing_rtc_response_queue.put(noop_msg)
-                except asyncio.exceptions.CancelledError:
+                except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
                     raise
                 except:
-                    logger.warning('Failed to send hearthbeat message')
+                    logger.exception('Warning: Failed to send heartbeat message')
 
                 await asyncio.sleep(sleep_in_second)
 
-        except asyncio.exceptions.CancelledError:
+        except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
             raise
         except:
             logger.exception('Fatal error, skip to next loop')

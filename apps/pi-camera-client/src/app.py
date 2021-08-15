@@ -31,7 +31,9 @@ def print_envs():
 
 def config_logging():
     for name in config.QUIET_LOGGER_NAMES.split(','):
-        logging.getLogger(name).setLevel(logging.WARNING)
+        if name:
+            root_logger.info(name)
+            logging.getLogger(name).setLevel(logging.WARNING)
 
 
 async def main():
