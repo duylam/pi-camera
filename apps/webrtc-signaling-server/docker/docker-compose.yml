@@ -5,7 +5,8 @@ services:
   #######################
   signaling-app:
     container_name: signaling-app
-    image: webrtc-signaling:latest
+    build:
+      context: .
     restart: unless-stopped
     logging:
       driver: json-file
