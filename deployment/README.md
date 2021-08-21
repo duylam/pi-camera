@@ -6,7 +6,6 @@ The document for how to deploy all apps in this repo to an Ubuntu server
 1. Allow access to remote Ubuntu server by appending below to `~/.ssh/config` in local machine. Feel free to use any name for `Host`, we will use `pi-meeting-server` on this doc
 
 ```
-... (existing config)
 Host pi-meeting-server
   Hostname <IP>
   User <username>
