@@ -11,7 +11,7 @@ GRPC_HOSTNAME = os.getenv('PI_MEETING_GRPC_HOSTNAME', 'localhost')
 GRPC_PORT = int(os.getenv('PI_MEETING_GRPC_PORT', 4000))
 
 # A comma-separated list of ice server urls
-ICE_SERVER_URLS = os.getenv('PI_MEETING_ICE_SERVER_URLS', 'stun:localhost:3478').split(',')
+ICE_SERVER_URLS = os.getenv('PI_MEETING_ICE_SERVER_URLS', 'stun:stun.stunprotocol.org:3478').split(',')
 
 CAMERA_BUFFER_SIZE = int(
     os.getenv('PI_MEETING_CAMERA_BUFFER_SIZE_IN_KB', 5*1024))*const.KB

@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
 
 import asyncio
 import logging
+import types
 from tasks import run_camera, run_rtc_signaling, run_main
 from queue import Queue
 from lib import config
@@ -25,7 +26,7 @@ def print_envs():
     for attr_name in dir(config):
         if not attr_name.startswith('__'):
             attr_value = getattr(config, attr_name)
-            if type(attr_value) in (int, str):
+            if type(attr_value) not in (types.FunctionType, types.LambdaType, types.MethodType, types.ModuleType):
                 root_logger.info("- %s=%s", attr_name, attr_value)
 
 
