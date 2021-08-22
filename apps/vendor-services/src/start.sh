@@ -25,7 +25,7 @@ docker run --rm \
     /envoy.yaml.j2
   
 if [ -z "`docker network ls | grep pi-network`" ]; then
-  docker network create --subnet 172.10.0.0/16 --gateway 172.10.0.1 pi-network
+  docker network create --subnet 172.10.0.0/16 pi-network
 fi
 
 docker-compose down &>/dev/null || true

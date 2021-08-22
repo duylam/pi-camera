@@ -41,6 +41,10 @@ export PI_MEETING_UPSTREAM_HOSTNAME=signaling-app
 export PI_MEETING_ADVERTISED_IP=<EC2 public IP>
 ```
 
+6. Make sure the firewall setting (e.g. AWS EC2 Security Group) are
+  - Allow anywhere incoming UDP from anywhere to the server
+  - Allow outgoing UDP to anywhere from the server
+
 # 2. Deploy
 
 - On each app, create build package (see corresponding README for build command)
