@@ -15,22 +15,10 @@ Host pi-meeting-server
 
 3. Setup docker for remote server, run below commands in local machine
 
-  - Install docker engine
+  - Install Docker Engine and Docker Compose
 
 ```bash
-curl https://get.docker.com/ | ssh pi-meeting-server 'bash -e -s' -
-```
-
-  - Install docker compose
-
-```bash
-ssh pi-meeting-server 'sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose; sudo chmod +x /usr/local/bin/docker-compose'
-```
-
-  - Run docker as non-root user
-
-```bash
-ssh pi-meeting-server 'sudo groupadd docker; sudo usermod -aG docker $USER'
+ssh pi-meeting-server 'bash -e -s' < ./install-docker.sh
 ```
 
   - Test docker
@@ -69,4 +57,26 @@ tar -c build/ | ssh pi-meeting-server 'cat >/tmp/vendor.tar'; ssh pi-meeting-ser
 ```
 
 - Go to remote server at corresponding folder and launch app by `start.sh` file
+
+# 3. Test deploy in local machine
+
+We can test the deploy by using an Ubuntu virtual machine on local. Below are steps to go through above procedure with virtual Ubuntu machine
+
+- Install [Vagrant](https://learn.hashicorp.com/tutorials/vagrant/getting-started-install?in=vagrant/getting-started)
+- Open Terminal, navigate to `ubuntu-18` folder and execute `vagrant up`
+- Execute deployment (above sections) on the Ubuntu virtual machine. Please note that the Ubuntu is already setup for docker automatically
+- Some basic vagrant commands
+  * To access to virtual machine, execute `vagrant ssh`.
+  * To stop the machine, execute `vagrant halt`.
+  * To destroy the machine, execute `vagrant destroy`.
+- See [Vagrant docs](https://www.vagrantup.com/docs) for further needs
+
+**Troubleshooting**
+
+- If executing `docker` raises below error, restart the virtual machine and try again
+
+```
+docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
+See 'docker run --help'.
+```
 

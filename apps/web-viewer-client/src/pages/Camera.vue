@@ -126,6 +126,7 @@ export default {
           this._peerConnection.onicecandidate = noop;
           this._peerConnection.onconnectionstatechange = noop;
           this._peerConnection.ontrack = noop;
+          this._peerConnection.onicecandidateerror = noop;
           this._peerConnection.close();
         }
         catch (e) {
@@ -144,9 +145,10 @@ export default {
       this.disconnect();
       this.rtcConnectError = '';
       this._peerConnection = new RTCPeerConnection(peerConnectionConfiguration);
+      this._debug.log('Created peer connection');
       this._peerConnection.onicecandidate = async (e) => {
         // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
-        this._debug.log('On peer icecandidate event', e);
+        this._debug.log('On peer "icecandidate" event', e);
         const candidate = e.candidate;
         if (candidate) {
           try {
@@ -159,7 +161,7 @@ export default {
         }
       };
       this._peerConnection.onconnectionstatechange = function () {
-        that._debug.log(`On peer onconnectionstatechange: ${this.connectionState}`);
+        that._debug.log(`On peer "onconnectionstatechange" event: ${this.connectionState}`);
         switch(this.connectionState) {
           case 'connected':
             that.rtcConnectState = this.connectionState;
@@ -170,13 +172,29 @@ export default {
         }
       };
       this._peerConnection.ontrack = (e) => {
-        this._debug.log('On peer track');
+        this._debug.log('On peer "track" event');
         if (this.$refs.domVideoElement.srcObject !== e.streams[0]) {
           this.$refs.domVideoElement.srcObject = e.streams[0]
           this._debug.log('Added track to <video>');
         }
       };
-      this._debug.log('Created peer connection and registered events');
+      this._peerConnection.onicecandidateerror = (e) => {
+        this._debug.error('On peer "onicecandidateerror" event');
+        if (e.errorCode >= 300 && e.errorCode <= 699) {
+          // STUN errors are in the range 300-699. See RFC 5389, section 15.6
+          // for a list of codes. TURN adds a few more error codes; see
+          // RFC 5766, section 15 for details.
+          this._debug.error('TURN and STUN protocol error', e);
+        } else if (e.errorCode >= 700 && e.errorCode <= 799) {
+          // Server could not be reached; a specific error number is
+          // provided but these are not yet specified.
+          this._debug.error('TURN and STUN server error', e);
+        }
+        else {
+          this._debug.error('Unknown error code', e);
+        }
+      };
+      this._debug.log('Registered events on peer connection');
 
       try {
         this._debug.log('Sending request.create_offer');
