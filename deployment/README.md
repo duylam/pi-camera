@@ -64,7 +64,14 @@ We can test the deploy by using an Ubuntu virtual machine on local. Below are st
 
 - Install [Vagrant](https://learn.hashicorp.com/tutorials/vagrant/getting-started-install?in=vagrant/getting-started)
 - Open Terminal, navigate to `ubuntu-18` folder and execute `vagrant up`
-- Execute deployment (above sections) on the Ubuntu virtual machine. Please note that the Ubuntu is already setup for docker automatically
+- The Ubuntu virtual machine has:
+  * Docker is installed automatically (with above script)
+  * Inside the machine, the folder `/host_disk` is mapped to the root folder of this git repo
+  * Ports are mapped to host machine
+    - `guest: 3478, host: 3478, protocol: "udp"`
+    - `guest: 4000, host: 4000, protocol: "tcp"`
+  * The host machine can access the virtual machine by private IP, execute `vagrant ssh -c ifconfig` to see what is the IP
+- Execute deployment (above sections) on the Ubuntu virtual machine
 - Some basic vagrant commands
   * To access to virtual machine, execute `vagrant ssh`.
   * To stop the machine, execute `vagrant halt`.

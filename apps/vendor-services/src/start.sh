@@ -1,16 +1,17 @@
 #!/bin/bash
 
-echo -e
-
-echo "Support variables (with default value)"
-echo "  - PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT=localhost:4001"
-echo "  - PI_MEETING_UPSTREAM_PORT=4000"
-echo "  - PI_MEETING_UPSTREAM_HOSTNAME=host.docker.internal"
-echo "  - PI_MEETING_ADVERTISED_IP=127.0.0.1 (transfer to --primaryadvertised of stun server)"
+echo -e # stop on command error
 
 downstream_hostname_port=${PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT-localhost:4001}
 upstream_port=${PI_MEETING_UPSTREAM_PORT-4000}
 upstream_hostname=${PI_MEETING_UPSTREAM_HOSTNAME-host.docker.internal}
+advertised_ip=${PI_MEETING_ADVERTISED_IP-127.0.0.1}
+
+echo "Support variables (with default value)"
+echo "  - PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT=$downstream_hostname_port"
+echo "  - PI_MEETING_UPSTREAM_PORT=$upstream_port"
+echo "  - PI_MEETING_UPSTREAM_HOSTNAME=$upstream_hostname"
+echo "  - PI_MEETING_ADVERTISED_IP=$advertised_ip (transfer to --primaryadvertised of stun server)"
 
 docker build --tag jinja:latest -f jinja.Dockerfile .
 docker run --rm \
@@ -28,7 +29,7 @@ if [ -z "`docker network ls | grep pi-network`" ]; then
 fi
 
 docker-compose down &>/dev/null || true
-PI_MEETING_ADVERTISED_IP=${PI_MEETING_ADVERTISED_IP-127.0.0.1} docker-compose up -d
+PI_MEETING_ADVERTISED_IP=$advertised_ip docker-compose up -d
 
 echo "Listening ports: "
 echo "  - STUN service on 3478 (UDP)"
