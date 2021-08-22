@@ -1,7 +1,7 @@
 version: '3'
 services:
   stun:
-    image: rwgrim/stuntman-server
+    image: coturn/coturn:4.5.2-alpine
     container_name: stun
     restart: unless-stopped
     logging:
@@ -13,7 +13,7 @@ services:
       - pi-network
     ports:
       - "3478:3478/udp"
-    command: ['--primaryadvertised', "${PI_MEETING_ADVERTISED_IP}", "--verbosity", "3"]
+    command: ['--no-software-attribute', '--no-cli', '--stun-only', '--listening-port', '3478', '--external-ip', "${PI_MEETING_ADVERTISED_IP}"]
   grpc-web-proxy:
     image: envoyproxy/envoy:v1.14.4
     container_name: grpc-web-proxy
