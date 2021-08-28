@@ -25,15 +25,8 @@ g. To install libraries: `npm i`
 1. To update TOC in README, run `npm run update-toc`.
 1. To compile .proto to nodejs, run `npm run compile-proto`.
 1. To install new node library: `npm i -D <name>`.
-1. To build to frontend package
-
-```bash
-VUE_APP_GRPC_API_BASE_URL="http://localhost:4001" \
-  VUE_APP_WEBRTC_ICE_SERVER_URLS="stun:localhost:3478?transport=udp" \ # optional
-  npm run build
-```
-
-5. To run [Vue CLI](https://cli.vuejs.org/guide/): `npx vue-cli-service help`. Some common commands
+1. To build to frontend package: `npm run build`
+1. To run [Vue CLI](https://cli.vuejs.org/guide/): `npx vue-cli-service help`. Some common commands
 
   - To lint: `npx vue-cli-service lint`
 

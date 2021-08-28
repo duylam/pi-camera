@@ -30,19 +30,13 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 # 2. Development setup 
 
 1. Run `bash scripts/dev-setup.sh` which installs Pythoni 3.5+ and other system dependencies
-1. (Optional) Use [venv](https://docs.python.org/3/library/venv.html) to create virtual environment. Quick steps as below
-
-  - Create directory for the virtual environment (ignored by git):  `$ python3 -m venv --clear ./.penv`
-  - To enter the virtual environment: `$ source ./.penv/bin/activate`
-  - To exit the virtual environment: `$ deactivate`
-
-3. See necessary environment at `src/lib/config.py`. You can create `.env` file for predefine env var for local development, see [python-dotenv](https://pypi.org/project/python-dotenv/)
+1. See necessary environment at `src/lib/config.py`. You can create `.env` file for predefine env var for local development, see [python-dotenv](https://pypi.org/project/python-dotenv/)
 
 # 3. Coding workflow
 
-1. (Optional) Enter to the virtual enviroment. Below commands are supposed to run inside the virtual env
-1. Install libraries: `pip3 install -r requirements.txt && poetry install`
-1. Compile proto to .py: `bash scripts/compile_proto.sh`
+Run `source scripts/dev-shell.sh` setup and go into virtual environment
+
+> Below commands are supposed to run inside the virtual env
 
 **To launch on Pi box**
 
@@ -55,7 +49,7 @@ Launch the app: `python3 src/app.py`
 
 # 4. Other commands
 
-> (Optional) Enter to the virtual enviroment. Below commands are supposed to run inside the virtual env
+> Below commands are supposed to run inside the virtual env
 
 1. To update TOC in README, run `md_toc -p github README.md`
 1. To run unit test: `bash scripts/test.sh`

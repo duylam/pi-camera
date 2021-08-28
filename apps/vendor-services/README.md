@@ -1,6 +1,6 @@
 # 1. Setup
 
-- Install docker
+- Install [docker](https://docs.docker.com/engine/install/)
 
 # 2. Workflows
 
