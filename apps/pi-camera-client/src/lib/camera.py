@@ -24,29 +24,6 @@ class Camera:
         temp_buff = io.BytesIO()
         while not self._pi_frame_queue.empty():
             temp_buff.write(self._pi_frame_queue.get_nowait())
-        # Should sleep less 1s, camera can produce data exceeding
-        # buffer size on longer sleep time. It produces around
-        # 400KB data in 1 second
-        #await asyncio.sleep(0.1)
-
-        # Raise error if the PiCamera has any error so that caller can re-init it again
-        #self._pi_camera.wait_recording()
-
-        #current_stream = self._pi_camera_buffer_stream_1
-        #next_stream = self._pi_camera_buffer_stream_2
-        #if current_stream.tell() == 0:
-        #    current_stream = self._pi_camera_buffer_stream_2
-        #    next_stream = self._pi_camera_buffer_stream_1
-
-        #next_stream.seek(0)
-        ## wait for camera to flushing current_stream
-        #self._logger.debug("begin")
-        #self._pi_camera.split_recording(next_stream)
-        #self._logger.debug("after")
-
-        #current_stream.seek(0)
-        #captured_video_bytes = current_stream.read()
-        #current_stream.seek(0) # indicate the next stream on next loop
 
         # Convert .H264 bytes to set([av.Frame])
         # See https://pyav.org/docs/develop/cookbook/basics.html#parsing
