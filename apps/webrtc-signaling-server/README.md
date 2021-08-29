@@ -10,10 +10,20 @@ A web server app to forward WebRTC Signaling messages for clients
 
 <!-- tocstop -->
 
+---
+
+> Below commands are supposted to run where current working dir is at this folder
+
 # 1. Development setup 
 
 1. Install NodeJS v14
-1. Consul necessary environment variables in `src/lib/config.js`
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+nvm install 14.17.0
+```
+
+2. Consult necessary environment variables in `src/lib/config.js`
 1. (Optional) Create `.env.local` file to set value for them in local (ignored by git). The content is like
 
 ```bash

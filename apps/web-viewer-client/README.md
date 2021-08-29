@@ -10,14 +10,24 @@ A Web frontend app (VueJS) displays video from `pi-camera-client` in WebRTC prot
 
 <!-- tocstop -->
 
+---
+
+> Below commands are supposted to run where current working dir is at this folder
+
 # 1. Development setup 
 
 1. Install NodeJS v14
-1. (Optional) Necessary environment variables are declared in `.env` file with default value. For overriding them, copy it to `.env.local` and modify it (ignored by git)
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+nvm install 14.17.0
+```
+
+2. (Optional) Necessary environment variables are declared in `.env` file with default value. For overriding them, copy it to `.env.local` and modify it
 
 # 2. Coding workflow
 
-g. To install libraries: `npm i`
+1. To install libraries: `npm i`
 1. To start frontend app with hot-reloads: `npm start`
 
 # 3. Other commands

@@ -1,13 +1,16 @@
-A Python app captures H264 video from Camera module, wrap with MP4 container and sends to TURN server in WebRTC protocol
+A Python app running on Pi which captures H264 video from Camera module, wrap with MP4 container and sends to web-viewer in WebRTC protocol
 
 **Table of Content**
 
 <!--TOC-->
 
-- [1. Prerequisite](#1-prerequisite)
-- [2. Development setup](#2-development-setup)
-- [3. Coding workflow](#3-coding-workflow)
-- [4. Other commands](#4-other-commands)
+- [1. Development setup](#1-development-setup)
+  - [1.1. On macOS](#11-on-macos)
+  - [1.2. On Raspberry Pi](#12-on-raspberry-pi)
+- [2. Development workflow](#2-development-workflow)
+  - [2.1. Launch app](#21-launch-app)
+  - [2.2. Other commands](#22-other-commands)
+- [3. Deployment](#3-deployment)
 - [4. Other Proof of Concept app](#4-other-proof-of-concept-app)
   - [4.1 Record camera](#41-record-camera)
   - [4.2 Wrap mp4 containter](#42-wrap-mp4-containter)
@@ -19,35 +22,48 @@ A Python app captures H264 video from Camera module, wrap with MP4 container and
 
 <!--TOC-->
 
-# 1. Prerequisite
+---
 
-1. Raspberry Pi (tested on Pi 3 Model B)
-1. Raspberry Pi OS 8 Jessie (tested)
-1. [Camera module installed](https://projects.raspberrypi.org/en/projects/getting-started-with-picamera)
-  - The Camera can be damaged easily due to [Electrostatic discharge](https://en.wikipedia.org/wiki/Electrostatic_discharge) (see more [here](https://raspberrypi.stackexchange.com/questions/12265/how-to-protect-rpi-camera-from-esd)). So make sure **DO NOT** touch it while the it connects to Pi and the Pi's power is on.
-  - To verify the Camera works: `raspistill -o /tmp/image.jpg`
+# 1. Development setup 
 
-# 2. Development setup 
+Since it's written in Python, the app can run on non-Pi machine as well, of course there is no video available for that case.
 
-1. Run `bash scripts/dev-setup.sh` which installs Pythoni 3.5+ and other system dependencies
+## 1.1. On macOS
+
+1. Install [XCode Command Line Tools](https://developer.apple.com/xcode/resources/)
+1. Install Python 3.5+ (just google to find suitable way)
+
+## 1.2. On Raspberry Pi
+
+1. Equip Raspberry Pi (tested on Pi 3 Model B) with OS 8 Jessie (tested)
+1. [Install Camera module](https://projects.raspberrypi.org/en/projects/getting-started-with-picamera)
+  - The Camera can be damaged easily due to [Electrostatic discharge](https://en.wikipedia.org/wiki/Electrostatic_discharge) (see more [here](https://raspberrypi.stackexchange.com/questions/12265/how-to-protect-rpi-camera-from-esd)). Therefore, **DO NOT** touch the camera while it connects to Pi and the Pi's power is on.
+  - To verify the Camera works, run `raspistill -o /tmp/image.jpg`. If there is no error then the Camera module works ok
+
+3. Run `bash scripts/pi/setup.sh` for system dependenies
+1. Run `bash scripts/pi/dev-setup.sh` for development utilities
+
+# 2. Development workflow
+
+> Below commands are supposted to run where current working dir is at this folder
+
+## 2.1. Launch app
+
 1. See necessary environment at `src/lib/config.py`. You can create `.env` file for predefine env var for local development, see [python-dotenv](https://pypi.org/project/python-dotenv/)
-
-# 3. Coding workflow
-
-Run `source scripts/dev-shell.sh` setup and go into virtual environment
+1. Run `source scripts/dev-shell.sh` to go into virtual environment
 
 > Below commands are supposed to run inside the virtual env
-
-**To launch on Pi box**
-
-Launch the app: `python3 src/app.py`
 
 **To launch on non Pi box (macOS, Ubuntu machine)**
 
 - Edit `src/lib/__init__.py` to change the Camera class to use `stub_camera` module 
 - Launch the app: `python3 src/app.py`
 
-# 4. Other commands
+**To launch on Pi box**
+
+Launch the app: `python3 src/app.py`
+
+## 2.2. Other commands
 
 > Below commands are supposed to run inside the virtual env
 
@@ -56,7 +72,13 @@ Launch the app: `python3 src/app.py`
 1. To run specific test method: `python3 -m unittest test.core.test_circular_stream.TestCircularStream.test_read_over_num_when_availale`
 1. To add new lib as production dependeny: `poetry add <name>`. For adding as development one: `poetry add --dev <name>`
 1. Format code: `autopep8  src/ test/`. And the commit changed files
+
+# 3. Deployment
+
+1. Equip Pi and Camera module attached
+1. Run `bash scripts/pi/setup.sh` on Pi
 1. Create build package: `poetry build --format sdist`
+1. TODO: build, unpack and configure env
 
 # 4. Other Proof of Concept app
 
