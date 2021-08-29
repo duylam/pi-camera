@@ -13,15 +13,16 @@ class Camera:
         self._logger = logging.getLogger("{}.camera_module".format(debug_ns))
         self._pi_camera = picamera.PiCamera()
         self._pi_camera.framerate = config.FRAMERATE
-        self._pi_camera_buffer_stream_1 = io.BufferedRandom(
-            io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
-        self._pi_camera_buffer_stream_2 = io.BufferedRandom(
-            io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
         self._captured_video_frames = set([])
         self._av_codec = None
 
     async def capture_recording(self) -> None:
         temp_buff = io.BytesIO()
+
+        if self._pi_frame_queue.empty():
+            await asyncio.sleep(0.01)
+            return
+
         while not self._pi_frame_queue.empty():
             temp_buff.write(self._pi_frame_queue.get_nowait())
 
@@ -37,12 +38,14 @@ class Camera:
                 self._captured_video_frames = self._captured_video_frames | set(
                     frames)
 
-        await asyncio.sleep(0.01)
+    def clear_video_video_frames(self) -> None:
+        self._captured_video_frames = set([])
 
     def get_video_video_frames(self) -> set:
         return self._captured_video_frames
 
     def write(self, buf):
+        # Start new H264 frame ?
         if buf.startswith(b'\x00\x00\x00\x01'):
             self._cam_buffer.truncate()
             self._pi_frame_queue.put_nowait(self._cam_buffer.getvalue())
@@ -68,9 +71,6 @@ class Camera:
             if self._pi_camera.recording:
                 self._pi_camera.stop_recording()
             self._pi_camera.close()
-
-            self._pi_camera_buffer_stream_1.close()
-            self._pi_camera_buffer_stream_2.close()
 
             # TODO: how to release self._av_codec
         except:

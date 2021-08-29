@@ -30,6 +30,8 @@ async def run(outgoing_video_chunk_queue: queue.Queue):
                         except:
                             logger.exception(
                                 'Error on writing video frames to queue, discarded this batch of frames')
+                        finally:
+                            camera.clear_video_video_frames()
 
         except asyncio.exceptions.CancelledError:
             raise

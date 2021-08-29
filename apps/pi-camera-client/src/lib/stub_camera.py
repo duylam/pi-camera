@@ -27,6 +27,9 @@ class Camera:
 
             self._captured_video_frames.append(frame)
 
+    def clear_video_video_frames(self) -> None:
+        self._captured_video_frames = set([])
+
     def get_video_video_frames(self):
         return self._captured_video_frames
 
