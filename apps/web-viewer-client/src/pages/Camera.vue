@@ -22,7 +22,7 @@
       </div>
     </div>
     <div class="container">
-      <video style="background-color: #222" width="1200" hieght="900" ref="domVideoElement" playsinline autoplay muted></video>
+      <video style="background-color: #222" width="700" height="500" ref="domVideoElement" playsinline autoplay muted></video>
     </div>
   </section>
 </template>
@@ -84,17 +84,10 @@ export default {
       
             callDebug.log('Calling peer.createAnswer()');
             const answerSessionDescription = await this._peerConnection.createAnswer();
-            callDebug.log('Sending request.answer_offer');
-            await this._signalingClient.sendAnswerOffer(answerSessionDescription.sdp);
-
-            // Temporarily keep in peer connection
-            this._peerConnection.__answer = answerSessionDescription;
+            await this._peerConnection.setLocalDescription(answerSessionDescription);
           }
           else if (response.getAnswerOffer()) {
             callDebug.log('It .response.answer_offer');
-            callDebug.log('Calling peer.setLocalDescription()');
-            await this._peerConnection.setLocalDescription(this._peerConnection.__answer);
-            delete this._peerConnection.__answer;
             callDebug.log('Sending request.confirm_answer');
             await this._signalingClient.sendConfirmAnswer();
             callDebug.log('Completed peer handshaking!');
@@ -104,14 +97,7 @@ export default {
           }
         }
         else if (incomingMsg.getRequest()) {
-          callDebug.log('It .request');
-          const request = incomingMsg.getRequest();
-      
-          if (request.getIceCandidate()) {
-            callDebug.log('It .request.ice_candidate');
-            callDebug.log('peer.addIceCandidate()');
-            await this._peerConnection.addIceCandidate(JSON.parse(request.getIceCandidate()));
-          }
+          callDebug.log('It .request but not handling now');
         }
       }
       catch (e) {
@@ -126,6 +112,7 @@ export default {
           this._peerConnection.onicecandidate = noop;
           this._peerConnection.onconnectionstatechange = noop;
           this._peerConnection.ontrack = noop;
+          this._peerConnection.onicecandidateerror = noop;
           this._peerConnection.close();
         }
         catch (e) {
@@ -144,22 +131,24 @@ export default {
       this.disconnect();
       this.rtcConnectError = '';
       this._peerConnection = new RTCPeerConnection(peerConnectionConfiguration);
+      this._debug.log('Created peer connection');
+
+      // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/icecandidate_event#indicating_the_end_of_a_generation_of_candidates
       this._peerConnection.onicecandidate = async (e) => {
         // See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnectionIceEvent
-        this._debug.log('On peer icecandidate event', e);
+        this._debug.log('On peer "icecandidate" event', e);
         const candidate = e.candidate;
-        if (candidate) {
-          try {
-            this._debug.log('Sending icecandidate', candidate);
-            await this._signalingClient.sendIceCandidate(candidate);
-          }
-          catch (e) {
-            this._debug.error('Sending icecandidate fails', e);
-          }
+        if (!candidate) {
+          // The aiortc library in pi-client hasn't supported ICE negotiation process, so the pi-client
+          // can't send back ICE candidate for establishing connection. Per the trick at
+          // https://stackoverflow.com/a/38533347, we will send full candidate for web-viewer at 
+          // end of ICE negotiation process so that pi-client has all candidates to reach to this web-viewer
+          this._debug.log('ICE negotiation completes. Sending request.answer_offer');
+          await this._signalingClient.sendAnswerOffer(this._peerConnection.localDescription.sdp);
         }
       };
       this._peerConnection.onconnectionstatechange = function () {
-        that._debug.log(`On peer onconnectionstatechange: ${this.connectionState}`);
+        that._debug.log(`On peer "onconnectionstatechange" event: ${this.connectionState}`);
         switch(this.connectionState) {
           case 'connected':
             that.rtcConnectState = this.connectionState;
@@ -170,13 +159,29 @@ export default {
         }
       };
       this._peerConnection.ontrack = (e) => {
-        this._debug.log('On peer track');
+        this._debug.log('On peer "track" event');
         if (this.$refs.domVideoElement.srcObject !== e.streams[0]) {
           this.$refs.domVideoElement.srcObject = e.streams[0]
           this._debug.log('Added track to <video>');
         }
       };
-      this._debug.log('Created peer connection and registered events');
+      this._peerConnection.onicecandidateerror = (e) => {
+        this._debug.error('On peer "onicecandidateerror" event');
+        if (e.errorCode >= 300 && e.errorCode <= 699) {
+          // STUN errors are in the range 300-699. See RFC 5389, section 15.6
+          // for a list of codes. TURN adds a few more error codes; see
+          // RFC 5766, section 15 for details.
+          this._debug.error('TURN and STUN protocol error', e);
+        } else if (e.errorCode >= 700 && e.errorCode <= 799) {
+          // Server could not be reached; a specific error number is
+          // provided but these are not yet specified.
+          this._debug.error('TURN and STUN server error', e);
+        }
+        else {
+          this._debug.error('Unknown error code', e);
+        }
+      };
+      this._debug.log('Registered events on peer connection');
 
       try {
         this._debug.log('Sending request.create_offer');

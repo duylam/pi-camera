@@ -3,61 +3,66 @@ import io
 import asyncio
 import picamera
 import av
+import queue
 from lib import const, config
 
-
 class Camera:
-    def __init__(self, debug_ns: str, video_resolution=config.VIDEO_RESOLUTION):
+    def __init__(self, debug_ns: str):
+        self._pi_frame_queue = queue.Queue(500)
+        self._cam_buffer = io.BytesIO()
         self._logger = logging.getLogger("{}.camera_module".format(debug_ns))
-        self._pi_camera = picamera.PiCamera(
-            resolution=video_resolution, framerate=config.FRAMERATE)
-        self._pi_camera_buffer_stream_1 = io.BufferedRandom(
-            io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
-        self._pi_camera_buffer_stream_2 = io.BufferedRandom(
-            io.BytesIO(), buffer_size=config.CAMERA_BUFFER_SIZE)
+        self._pi_camera = picamera.PiCamera()
+        self._pi_camera.framerate = config.FRAMERATE
         self._captured_video_frames = set([])
         self._av_codec = None
 
     async def capture_recording(self) -> None:
-        # Should sleep less 1s, camera can produce data exceeding
-        # buffer size on longer sleep time. It produces around
-        # 400KB data in 1 second
-        await asyncio.sleep(0.5)
+        temp_buff = io.BytesIO()
 
-        # Raise error if the PiCamera has any error so that caller can re-init it again
-        self._pi_camera.wait_recording(0)
+        if self._pi_frame_queue.empty():
+            await asyncio.sleep(0.01)
+            return
 
-        current_stream = self._pi_camera_buffer_stream_1
-        next_stream = self._pi_camera_buffer_stream_2
-        if self._pi_camera_buffer_stream_2.tell() > 0:
-            current_stream = self._pi_camera_buffer_stream_2
-            next_stream = self._pi_camera_buffer_stream_1
-
-        next_stream.seek(0)
-        # wait for camera to flushing current_stream
-        self._pi_camera.split_recording(next_stream)
-
-        current_stream.seek(0)
-        captured_video_bytes = current_stream.read()
+        while not self._pi_frame_queue.empty():
+            temp_buff.write(self._pi_frame_queue.get_nowait())
 
         # Convert .H264 bytes to set([av.Frame])
         # See https://pyav.org/docs/develop/cookbook/basics.html#parsing
-        packets = self._av_codec.parse(captured_video_bytes)
+        if temp_buff.tell() > 0:
+            temp_buff.truncate()
+            temp_buff.seek(0)
+            packets = self._av_codec.parse(temp_buff.getvalue())
+            self._captured_video_frames = set([])
+            for packet in packets:
+                frames = self._av_codec.decode(packet)
+                self._captured_video_frames = self._captured_video_frames | set(
+                    frames)
+
+    def clear_video_video_frames(self) -> None:
         self._captured_video_frames = set([])
-        for packet in packets:
-            frames = self._av_codec.decode(packet)
-            self._captured_video_frames = self._captured_video_frames | set(
-                frames)
 
     def get_video_video_frames(self) -> set:
         return self._captured_video_frames
+
+    def write(self, buf):
+        # Start new H264 frame ?
+        if buf.startswith(b'\x00\x00\x00\x01'):
+            self._cam_buffer.truncate()
+            self._pi_frame_queue.put_nowait(self._cam_buffer.getvalue())
+            self._cam_buffer.seek(0)
+
+        return self._cam_buffer.write(buf)
 
     def __enter__(self):
         # quality: For the 'h264' format, use values between 10 and 40 where 10 is extremely
         # high quality, and 40 is extremely low (20-25 is usually a reasonable range for H.264
         # encoding).
         self._pi_camera.start_recording(
-            self._pi_camera_buffer_stream_1, format='h264', quality=23)
+            self, format='h264',
+            # See https://www.rgb.com/h264-profiles
+            profile='baseline',
+            resize= config.VIDEO_RESOLUTION,
+            quality=config.VIDEO_QUALITY_OPTION)
         self._av_codec = av.CodecContext.create('h264', 'r')
         return self
 

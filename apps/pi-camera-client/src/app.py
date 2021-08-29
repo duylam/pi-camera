@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'schema_python'))
 
 import asyncio
 import logging
+import types
 from tasks import run_camera, run_rtc_signaling, run_main
 from queue import Queue
 from lib import config
@@ -17,7 +18,7 @@ logging.basicConfig(
     format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
 
     # Depress debug log from other modules by default
-    level=logging.WARNING)
+    level=config.LOG_LEVEL_NUM)
 root_logger = logging.getLogger(config.ROOT_LOGGING_NAMESPACE)
 
 def print_envs():
@@ -25,12 +26,15 @@ def print_envs():
     for attr_name in dir(config):
         if not attr_name.startswith('__'):
             attr_value = getattr(config, attr_name)
-            if type(attr_value) in (int, str):
+            if type(attr_value) not in (types.FunctionType, types.LambdaType, types.MethodType, types.ModuleType):
                 root_logger.info("- %s=%s", attr_name, attr_value)
 
 
 def config_logging():
-    root_logger.setLevel(config.LOG_LEVEL_NUM)
+    for name in config.QUIET_LOGGER_NAMES.split(','):
+        if name:
+            root_logger.info(name)
+            logging.getLogger(name).setLevel(logging.WARNING)
 
 
 async def main():

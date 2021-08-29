@@ -1,0 +1,39 @@
+version: '3'
+services:
+  stun:
+    image: coturn/coturn:4.5.2-alpine
+    container_name: stun
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "10"
+    networks:
+      - pi-network
+    ports:
+      - "3478:3478/udp"
+    command: ['--no-software-attribute', '--no-cli', '--stun-only', '--listening-port', '3478', '--external-ip', "${PI_MEETING_ADVERTISED_IP}"]
+  grpc-web-proxy:
+    image: envoyproxy/envoy:v1.14.4
+    container_name: grpc-web-proxy
+    restart: unless-stopped
+    networks:
+      - pi-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "10"
+    ports:
+      - "4001:8000"
+      - "9901"
+    command: ['-c', '/etc/envoy/envoy.yaml', '--log-level', 'debug']
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+      - ./log/:/var/log/envoy/
+
+networks:
+  pi-network:
+    external: true
+

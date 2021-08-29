@@ -7,6 +7,9 @@ from lib import RtcConnection, config
 
 GOOGLE_EMPTY = empty_pb2.Empty()
 
+# The interval duration needs to make sure for sending video frames
+# with expected rates
+INTERVAL_LOOP_MS = 1000 / config.FRAMERATE
 
 async def run(
     new_video_chunk_queue,
@@ -19,7 +22,7 @@ async def run(
     WEBRTC_VIDEO_TRACK_BUFFER_SIZE = config.CAMERA_BUFFER_SIZE*4
 
     peer_connections = set([])
-    sleep_in_second = config.MAIN_TASK_INTERVAL_DURATION / 1000
+    sleep_in_second = INTERVAL_LOOP_MS / 1000
     noop_msg = rtc_signaling_service_pb2.RtcSignalingMessage()
     noop_msg.noop.CopyFrom(GOOGLE_EMPTY)
     logger.info('Started')
@@ -82,6 +85,7 @@ async def run(
                             cn = RtcConnection(client_id, debug_ns)
                             offer = await cn.create_offer()
 
+                            logger.debug('create-offer SDP: %s' % offer)
                             logger.debug('Adding new peer connection to list')
                             peer_connections.add(cn)
                         except asyncio.exceptions.CancelledError:
@@ -148,14 +152,14 @@ async def run(
                 try:
                     # Send heartbeat to detect disconnected network
                     outgoing_rtc_response_queue.put(noop_msg)
-                except asyncio.exceptions.CancelledError:
+                except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
                     raise
                 except:
-                    logger.warning('Failed to send hearthbeat message')
+                    logger.exception('Warning: Failed to send heartbeat message')
 
                 await asyncio.sleep(sleep_in_second)
 
-        except asyncio.exceptions.CancelledError:
+        except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
             raise
         except:
             logger.exception('Fatal error, skip to next loop')

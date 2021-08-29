@@ -10,10 +10,20 @@ A web server app to forward WebRTC Signaling messages for clients
 
 <!-- tocstop -->
 
+---
+
+> Below commands are supposted to run where current working dir is at this folder
+
 # 1. Development setup 
 
 1. Install NodeJS v14
-1. Consul necessary environment variables in `src/lib/config.js`
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+nvm install 14.17.0
+```
+
+2. Consult necessary environment variables in `src/lib/config.js`
 1. (Optional) Create `.env.local` file to set value for them in local (ignored by git). The content is like
 
 ```bash
@@ -31,7 +41,6 @@ PI_MEETING_HEARTBEAT_INTERVAL_MS=5000
 1. To update TOC in README, run `npm run update-toc`.
 1. To compile .proto to nodejs, run `npm run compile-proto`.
 1. To install new library: `npm i -P <name>`.
-1. To create build package: `npm run build`.
-1. To create docker image: `npm run dockerize`.
+1. To build: `npm run build`.
 1. To turn on debug for gRPC, run `GRPC_VERBOSITY=DEBUG GRPC_TRACE=all npm start`. See [doc](https://github.com/grpc/grpc/blob/master/doc/environment_variables.md)
 

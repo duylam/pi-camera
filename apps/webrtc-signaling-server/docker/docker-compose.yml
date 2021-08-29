@@ -4,13 +4,21 @@ services:
   # Launch signaling app at port 4000
   #######################
   signaling-app:
-    image: webrtc-signaling:latest
+    container_name: signaling-app
+    build:
+      context: .
     restart: unless-stopped
     logging:
       driver: json-file
       options:
         max-size: "100m"
         max-file: "10"
+    networks:
+      - pi-network
     ports:
       - "4000:4000"
+
+networks:
+  pi-network:
+    external: true
 
