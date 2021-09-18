@@ -82,7 +82,7 @@ VIDEO_CLOCK_RATE = 90000
 VIDEO_PTIME = 1/config.FRAMERATE
 VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 VIDEO_PRESENTATION_TIMESTAMP_CLOCK = int(VIDEO_PTIME * VIDEO_CLOCK_RATE)
-WAIT_FOR_NEW_FRAME_SECOND = 1000/config.FRAMERATE
+WAIT_FOR_NEW_FRAME_SECOND = (1/config.FRAMERATE)/1000
 
 class CameraStreamTrack(MediaStreamTrack):
     kind = "video"
@@ -97,7 +97,6 @@ class CameraStreamTrack(MediaStreamTrack):
     """
     Receives list of av.Frame representing for video from Camera module
     """
-
     def add_video_frames(self, frames: []) -> None:
         if self.readyState != 'live':
             return
@@ -123,13 +122,10 @@ class CameraStreamTrack(MediaStreamTrack):
             finally:
                 self._timestamp += VIDEO_PRESENTATION_TIMESTAMP_CLOCK
 
-   #
-   # Below methods are implementation for base class MediaStreamTrack
-   #
+    #
+    # Below methods are implementation for base class MediaStreamTrack
+    #
     async def recv(self) -> Frame:
-        if self.readyState != 'live':
-            raise MediaStreamError
-
         frame = None
         while True:
             # Make sure frames are available to send to other peer
@@ -137,7 +133,7 @@ class CameraStreamTrack(MediaStreamTrack):
                 await asyncio.sleep(WAIT_FOR_NEW_FRAME_SECOND)
 
             try:
-                frame = self._frames_queue.get_nowait()
+                frame = self._frames_queue.get()
                 break
             except:
                 pass

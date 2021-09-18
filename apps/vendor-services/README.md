@@ -6,7 +6,9 @@ Start 3rd-party services. Make sure to install [docker](https://docs.docker.com/
 
 `bash scripts/dev-start.sh`
 
-- GRPC Web proxy listens on 4001 and proxies to 4000
+- Listen ports:
+  * gRPC 4001
+  * UDP 3478
 
 **To create build package for running on server**
 
