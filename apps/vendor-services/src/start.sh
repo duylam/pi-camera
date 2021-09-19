@@ -6,6 +6,7 @@ downstream_hostname_port=${PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT-localhost:400
 upstream_port=${PI_MEETING_UPSTREAM_PORT-4000}
 upstream_hostname=${PI_MEETING_UPSTREAM_HOSTNAME-host.docker.internal}
 advertised_ip=${PI_MEETING_ADVERTISED_IP-127.0.0.1}
+docker_compose_up_opt="${PI_MEETING_DOCKER_COMPOSE_UP_OPT--up}"
 
 echo "Support variables (with default value)"
 echo "  - PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT=$downstream_hostname_port"
@@ -29,7 +30,7 @@ if [ -z "`docker network ls | grep pi-network`" ]; then
 fi
 
 docker-compose down &>/dev/null || true
-PI_MEETING_ADVERTISED_IP=$advertised_ip docker-compose up -d
+PI_MEETING_ADVERTISED_IP=$advertised_ip docker-compose up $docker_compose_up_opt
 
 echo "Listening ports: "
 echo "  - STUN service on 3478 (UDP)"
