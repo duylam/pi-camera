@@ -1,9 +1,11 @@
 import logging
 import asyncio
+import queue
 
 from google.protobuf import empty_pb2
 from schema_python import rtc_signaling_service_pb2
 from lib import RtcConnection, config
+from tasks.peer_connection_task import models as peer_connection_task_models
 
 GOOGLE_EMPTY = empty_pb2.Empty()
 
@@ -11,11 +13,12 @@ GOOGLE_EMPTY = empty_pb2.Empty()
 # with expected rates
 INTERVAL_LOOP_MS = 1000 / config.FRAMERATE
 
-
 async def run(
-    new_video_chunk_queue,
-    incoming_rtc_request_queue,
-    outgoing_rtc_response_queue
+    new_video_chunk_queue: queue.Queue,
+    incoming_rtc_request_queue: queue.Queue,
+    outgoing_rtc_response_queue: queue.Queue,
+    peer_connection_request: queue.Queue,
+    peer_connection_response: queue.Queue
 ):
     debug_ns = "{}.main_task".format(config.ROOT_LOGGING_NAMESPACE)
     logger = logging.getLogger(debug_ns)
@@ -56,8 +59,29 @@ async def run(
                     except asyncio.exceptions.CancelledError:
                         raise
                     except:
-                        logger.warning(
-                            'Error on sending a batch of video frames to peer connections. Continue to next batch')
+                        logger.exception(
+                            '[WARNING] Error on sending a batch of video frames to peer connections. Continue to next batch')
+
+                while not peer_connection_response.empty():
+                    try:
+                        peer_connection_response_message = peer_connection_response.get_nowait()
+                        err_msg = peer_connection_response_message.error_msg
+                        create_offer = None
+
+                        if err_msg is None:
+                            logger.debug("Adding new peer connection client_id=%s to list" % peer_connection_response_message.client_id)
+                            peer_connections.add(peer_connection_response_message.pc)
+                            create_offer = peer_connection_response_message.sdp_offer
+
+                        msg = get_message_response_create_offer(
+                            peer_connection_response_message.client_id, create_offer=create_offer, err_msg=err_msg)
+                        outgoing_rtc_response_queue.put_nowait(msg)
+                        logger.debug("Dispatched SDP of create_offer for client_id=%s to queue" % peer_connection_response_message.client_id)
+                    except asyncio.exceptions.CancelledError:
+                        raise
+                    except:
+                        logger.exception(
+                            '[WARNING] Error on handling peer_connection_response queue item. Continue to next item')
 
                 while not incoming_rtc_request_queue.empty():
                     incoming_msg = incoming_rtc_request_queue.get()
@@ -80,33 +104,11 @@ async def run(
                         continue
 
                     if request.WhichOneof('type') == 'create_offer':
-                        err_msg = None
-                        offer = None
+                        peer_connection_request_message = peer_connection_task_models.CreateRtcConnectionRequest(client_id)
                         try:
-                            cn = RtcConnection(client_id, debug_ns)
-                            offer = await cn.create_offer()
-
-                            logger.debug('create-offer SDP: %s' % offer)
-                            logger.debug('Adding new peer connection to list')
-                            peer_connections.add(cn)
-                        except asyncio.exceptions.CancelledError:
-                            raise
+                            peer_connection_request.put(peer_connection_request_message, timeout=0.05)
                         except:
-                            err_msg = str(sys.exc_info()[0])
-                            logger.exception(
-                                'Error on creating RTC connection')
-                        finally:
-                            try:
-                                msg = get_message_response_create_offer(
-                                    client_id, create_offer=offer, err_msg=err_msg)
-                                outgoing_rtc_response_queue.put(msg, timeout=2)
-                                logger.debug(
-                                    'Dispatched SDP of create_offer to queue')
-                            except asyncio.exceptions.CancelledError:
-                                raise
-                            except:
-                                logger.exception(
-                                    'Error writing to signaling response queue')
+                            logger.exception("Error on processing create_offer for client_id %s. Ignore" % client_id)
                     elif request.WhichOneof('type') == 'answer_offer':
                         err_msg = None
                         for c in peer_connections:

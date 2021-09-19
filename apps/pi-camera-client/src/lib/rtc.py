@@ -14,8 +14,8 @@ from lib import config
 
 
 class RtcConnection:
-    def __init__(self, client_id: str, debug_ns: str):
-        ns = "{}.rtc_{}".format(debug_ns, client_id)
+    def __init__(self, client_id: str):
+        ns = "{}.rtc_{}".format(config.ROOT_LOGGING_NAMESPACE, client_id)
         self._logger = logging.getLogger(ns)
         self._camera_stream_track = CameraStreamTrack(debug_ns=ns)
         self._answer_confirmed = False

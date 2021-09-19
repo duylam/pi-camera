@@ -34,3 +34,8 @@ VIDEO_RESOLUTION = (640, 480)  # (width, height)
 # and 40 is extremely low (20-25 is usually a reasonable range for H.264 encoding).
 # See https://picamera.readthedocs.io/en/release-1.3/api.html#picamera.PiCamera.start_recording
 VIDEO_QUALITY_OPTION = int(os.getenv('PI_MEETING_VIDEO_QUALITY_OPTION', 20))
+
+# The ICE gathering process takes around 3 seconds per each connection, this env
+# define maximum connection in queue for ice gathering process
+MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE = int(os.getenv('PI_MEETING_MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE', 100))
+
