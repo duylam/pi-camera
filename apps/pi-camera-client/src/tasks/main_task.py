@@ -13,6 +13,7 @@ GOOGLE_EMPTY = empty_pb2.Empty()
 # with expected rates
 INTERVAL_LOOP_MS = 1000 / config.FRAMERATE
 
+
 async def run(
     new_video_chunk_queue: queue.Queue,
     incoming_rtc_request_queue: queue.Queue,
@@ -69,14 +70,17 @@ async def run(
                         create_offer = None
 
                         if err_msg is None:
-                            logger.debug("Adding new peer connection client_id=%s to list" % peer_connection_response_message.client_id)
-                            peer_connections.add(peer_connection_response_message.pc)
+                            logger.debug("Adding new peer connection client_id=%s to list" %
+                                         peer_connection_response_message.client_id)
+                            peer_connections.add(
+                                peer_connection_response_message.pc)
                             create_offer = peer_connection_response_message.sdp_offer
 
                         msg = get_message_response_create_offer(
                             peer_connection_response_message.client_id, create_offer=create_offer, err_msg=err_msg)
                         outgoing_rtc_response_queue.put_nowait(msg)
-                        logger.debug("Dispatched SDP of create_offer for client_id=%s to queue" % peer_connection_response_message.client_id)
+                        logger.debug("Dispatched SDP of create_offer for client_id=%s to queue" %
+                                     peer_connection_response_message.client_id)
                     except asyncio.exceptions.CancelledError:
                         raise
                     except:
@@ -104,11 +108,14 @@ async def run(
                         continue
 
                     if request.WhichOneof('type') == 'create_offer':
-                        peer_connection_request_message = peer_connection_task_models.CreateRtcConnectionRequest(client_id)
+                        peer_connection_request_message = peer_connection_task_models.CreateRtcConnectionRequest(
+                            client_id)
                         try:
-                            peer_connection_request.put(peer_connection_request_message, timeout=0.05)
+                            peer_connection_request.put(
+                                peer_connection_request_message, timeout=0.05)
                         except:
-                            logger.exception("Error on processing create_offer for client_id %s. Ignore" % client_id)
+                            logger.exception(
+                                "Error on processing create_offer for client_id %s. Ignore" % client_id)
                     elif request.WhichOneof('type') == 'answer_offer':
                         err_msg = None
                         for c in peer_connections:

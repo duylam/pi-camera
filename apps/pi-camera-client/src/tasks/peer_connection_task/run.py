@@ -1,8 +1,9 @@
 import logging
 import queue
 import asyncio
-from .  import models
+from . import models
 from lib import RtcConnection, config
+
 
 async def run(request: queue.Queue, response: queue.Queue):
     debug_ns = "{}.peer_connection_task".format(config.ROOT_LOGGING_NAMESPACE)
@@ -25,13 +26,15 @@ async def run(request: queue.Queue, response: queue.Queue):
                 raise
             except:
                 error_msg = str(sys.exc_info()[0])
-                logger.exception('Unknown error on handling request, ignore and continue with next item')
+                logger.exception(
+                    'Unknown error on handling request, ignore and continue with next item')
             finally:
-                response_message = models.CreateRtcConnectionResponse(client_id, pc = cn, sdp_offer = offer, error_msg = error_msg)
+                response_message = models.CreateRtcConnectionResponse(
+                    client_id, pc=cn, sdp_offer=offer, error_msg=error_msg)
                 try:
                     response.put_nowait(response_message)
                 except:
-                    logger.exception('Unknown error on sending response, ignore and continue with next item')
+                    logger.exception(
+                        'Unknown error on sending response, ignore and continue with next item')
 
         await asyncio.sleep(0.1)
-

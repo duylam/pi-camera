@@ -37,5 +37,5 @@ VIDEO_QUALITY_OPTION = int(os.getenv('PI_MEETING_VIDEO_QUALITY_OPTION', 20))
 
 # The ICE gathering process takes around 3 seconds per each connection, this env
 # define maximum connection in queue for ice gathering process
-MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE = int(os.getenv('PI_MEETING_MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE', 100))
-
+MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE = int(
+    os.getenv('PI_MEETING_MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE', 100))
