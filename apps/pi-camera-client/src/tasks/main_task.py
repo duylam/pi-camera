@@ -11,6 +11,7 @@ GOOGLE_EMPTY = empty_pb2.Empty()
 # with expected rates
 INTERVAL_LOOP_MS = 1000 / config.FRAMERATE
 
+
 async def run(
     new_video_chunk_queue,
     incoming_rtc_request_queue,
@@ -155,7 +156,8 @@ async def run(
                 except (asyncio.exceptions.CancelledError, KeyboardInterrupt):
                     raise
                 except:
-                    logger.exception('Warning: Failed to send heartbeat message')
+                    logger.exception(
+                        'Warning: Failed to send heartbeat message')
 
                 await asyncio.sleep(sleep_in_second)
 
