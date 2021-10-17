@@ -44,7 +44,7 @@ async def run(
                 if closed_peer_connections_count > 0:
                     logger.debug("Found %s closed peer connections",
                                  closed_peer_connections_count)
-                    for pc in peer_connections:
+                    for pc in closed_peer_connections:
                         logger.debug("Closing peer id %s", pc.client_id)
                         await pc.close()
 
