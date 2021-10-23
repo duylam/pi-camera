@@ -16,6 +16,7 @@ A Python app running on Pi which captures H264 video from Camera module, wrap wi
   - [4.2 Wrap mp4 containter](#42-wrap-mp4-containter)
   - [4.3 Check video format](#43-check-video-format)
 - [5. Technical notes](#5-technical-notes)
+  - [5.1. Error "expected string or bytes-like object" on command "source scripts/dev-shell.sh"](#51-error-expected-string-or-bytes-like-object-on-command-source-scriptsdev-shellsh)
 - [6. Camera module troubleshooting](#6-camera-module-troubleshooting)
   - [6.1 Error "mmal: mmal_vc_component_create: failed to create component 'vc.ril.camera'"](#61-error-mmal-mmal_vc_component_create-failed-to-create-component-vcrilcamera)
   - [6.2 Error "mmal: No data received from sensor. Check all connections, including the Sunny one on the camera board"](#62-error-mmal-no-data-received-from-sensor-check-all-connections-including-the-sunny-one-on-the-camera-board)
