@@ -103,6 +103,27 @@ Run `bash poc/check-video-format/run.sh`
 - [Sample .h264 video files](https://www.fastvdo.com/H.264.html)
 - [WebRTC signaling workflow](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling)
 
+## 5.1. Error "expected string or bytes-like object" on command "source scripts/dev-shell.sh"
+
+If you see error as below
+
+```
+expected string or bytes-like object
+
+  at /usr/local/lib/python3.9/site-packages/poetry/core/utils/helpers.py:27 in canonicalize_name
+       23│ _canonicalize_regex = re.compile(r"[-_]+")
+       24│
+       25│
+       26│ def canonicalize_name(name):  # type: (str) -> str
+    →  27│     return _canonicalize_regex.sub("-", name).lower()
+       28│
+       29│
+       30│ def module_name(name):  # type: (str) -> str
+       31│     return canonicalize_name(name).replace(".", "_").replace("-", "_")
+```
+
+Then run `rm -rf .penv`, and re-run `source scripts/dev-shell.sh`
+
 # 6. Camera module troubleshooting
 
 ## 6.1 Error "mmal: mmal_vc_component_create: failed to create component 'vc.ril.camera'"
