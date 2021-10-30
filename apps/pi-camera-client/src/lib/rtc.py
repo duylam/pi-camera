@@ -14,19 +14,21 @@ from lib import config
 
 
 class RtcConnection:
-    def __init__(self, client_id: str, debug_ns: str):
-        ns = "{}.rtc_{}".format(debug_ns, client_id)
+    def __init__(self, client_id: str):
+        ns = "{}.rtc_{}".format(config.ROOT_LOGGING_NAMESPACE, client_id)
         self._logger = logging.getLogger(ns)
         self._camera_stream_track = CameraStreamTrack(debug_ns=ns)
         self._answer_confirmed = False
 
         # See https://aiortc.readthedocs.io/en/stable/api.html#webrtc
-        self._pc = RTCPeerConnection(RTCConfiguration([RTCIceServer(config.ICE_SERVER_URLS)]))
+        self._pc = RTCPeerConnection(RTCConfiguration(
+            [RTCIceServer(config.ICE_SERVER_URLS)]))
         self._client_id = client_id
 
         @self._pc.on("connectionstatechange")
         def on_connectionstatechange():
-            self._logger.debug("[Event: connectionstatechange] Connection state is %s" % self._pc.connectionState)
+            self._logger.debug(
+                "[Event: connectionstatechange] Connection state is %s" % self._pc.connectionState)
 
     @property
     def closed(self) -> bool:
@@ -84,6 +86,7 @@ VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 VIDEO_PRESENTATION_TIMESTAMP_CLOCK = int(VIDEO_PTIME * VIDEO_CLOCK_RATE)
 WAIT_FOR_NEW_FRAME_SECOND = (1/config.FRAMERATE)/1000
 
+
 class CameraStreamTrack(MediaStreamTrack):
     kind = "video"
 
@@ -97,6 +100,7 @@ class CameraStreamTrack(MediaStreamTrack):
     """
     Receives list of av.Frame representing for video from Camera module
     """
+
     def add_video_frames(self, frames: []) -> None:
         if self.readyState != 'live':
             return
@@ -139,4 +143,3 @@ class CameraStreamTrack(MediaStreamTrack):
                 pass
 
         return frame
-

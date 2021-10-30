@@ -9,6 +9,8 @@ video_width, video_height = config.VIDEO_RESOLUTION
 
 # A stub camera for developing without using real Pi box. This
 # stub camera produces green frame
+
+
 class Camera:
     def __init__(self, debug_ns: str):
         self._logger = logging.getLogger("{}.stub_camera".format(debug_ns))
@@ -38,4 +40,3 @@ class Camera:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
-

@@ -11,7 +11,8 @@ GRPC_HOSTNAME = os.getenv('PI_MEETING_GRPC_HOSTNAME', 'localhost')
 GRPC_PORT = int(os.getenv('PI_MEETING_GRPC_PORT', 4000))
 
 # A comma-separated list of ice server urls
-ICE_SERVER_URLS = os.getenv('PI_MEETING_ICE_SERVER_URLS', 'stun:stun.stunprotocol.org:3478').split(',')
+ICE_SERVER_URLS = os.getenv(
+    'PI_MEETING_ICE_SERVER_URLS', 'stun:stun.stunprotocol.org:3478').split(',')
 
 CAMERA_BUFFER_SIZE = int(
     os.getenv('PI_MEETING_CAMERA_BUFFER_SIZE_IN_KB', 5*1024))*const.KB
@@ -34,3 +35,7 @@ VIDEO_RESOLUTION = (640, 480)  # (width, height)
 # See https://picamera.readthedocs.io/en/release-1.3/api.html#picamera.PiCamera.start_recording
 VIDEO_QUALITY_OPTION = int(os.getenv('PI_MEETING_VIDEO_QUALITY_OPTION', 20))
 
+# The ICE gathering process takes around 3 seconds per each connection, this env
+# define maximum connection in queue for ice gathering process
+MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE = int(
+    os.getenv('PI_MEETING_MAX_CONCURRENT_RTC_ICE_GATHERING_QUEUE', 100))

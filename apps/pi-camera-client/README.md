@@ -16,6 +16,7 @@ A Python app running on Pi which captures H264 video from Camera module, wrap wi
   - [4.2 Wrap mp4 containter](#42-wrap-mp4-containter)
   - [4.3 Check video format](#43-check-video-format)
 - [5. Technical notes](#5-technical-notes)
+  - [5.1. Error "expected string or bytes-like object" on command "source scripts/dev-shell.sh"](#51-error-expected-string-or-bytes-like-object-on-command-source-scriptsdev-shellsh)
 - [6. Camera module troubleshooting](#6-camera-module-troubleshooting)
   - [6.1 Error "mmal: mmal_vc_component_create: failed to create component 'vc.ril.camera'"](#61-error-mmal-mmal_vc_component_create-failed-to-create-component-vcrilcamera)
   - [6.2 Error "mmal: No data received from sensor. Check all connections, including the Sunny one on the camera board"](#62-error-mmal-no-data-received-from-sensor-check-all-connections-including-the-sunny-one-on-the-camera-board)
@@ -71,7 +72,7 @@ Launch the app: `python3 src/app.py`
 1. To run unit test: `bash scripts/test.sh`
 1. To run specific test method: `python3 -m unittest test.core.test_circular_stream.TestCircularStream.test_read_over_num_when_availale`
 1. To add new lib as production dependeny: `poetry add <name>`. For adding as development one: `poetry add --dev <name>`
-1. Format code: `autopep8  src/ test/`. And the commit changed files
+1. Format code: `autopep8 src/ test/`. And the commit changed files
 
 # 3. Deployment
 
@@ -102,6 +103,27 @@ Run `bash poc/check-video-format/run.sh`
 - [Python grpc example with asyncio module](https://github.com/grpc/grpc/blob/master/examples/python/route_guide/asyncio_route_guide_client.py)
 - [Sample .h264 video files](https://www.fastvdo.com/H.264.html)
 - [WebRTC signaling workflow](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling)
+
+## 5.1. Error "expected string or bytes-like object" on command "source scripts/dev-shell.sh"
+
+If you see error as below
+
+```
+expected string or bytes-like object
+
+  at /usr/local/lib/python3.9/site-packages/poetry/core/utils/helpers.py:27 in canonicalize_name
+       23│ _canonicalize_regex = re.compile(r"[-_]+")
+       24│
+       25│
+       26│ def canonicalize_name(name):  # type: (str) -> str
+    →  27│     return _canonicalize_regex.sub("-", name).lower()
+       28│
+       29│
+       30│ def module_name(name):  # type: (str) -> str
+       31│     return canonicalize_name(name).replace(".", "_").replace("-", "_")
+```
+
+Then run `rm -rf .penv`, and re-run `source scripts/dev-shell.sh`
 
 # 6. Camera module troubleshooting
 

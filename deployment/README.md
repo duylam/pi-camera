@@ -3,10 +3,10 @@ The document for how to deploy all apps in this repo to an Ubuntu server
 # 1. Setup
 
 1. Prepare a Ubuntu server
-1. Allow access to remote Ubuntu server by appending below to `~/.ssh/config` in local machine. Feel free to use any name for `Host`, we will use `pi-meeting-server` on this doc
+1. Allow access to remote Ubuntu server by appending below to `~/.ssh/config` in local machine. Feel free to use any name for `Host`, we will use `pi-camera-server` on this doc
 
 ```
-Host pi-meeting-server
+Host pi-camera-server
   Hostname <IP>
   User <username>
   StrictHostKeyChecking no
@@ -18,27 +18,26 @@ Host pi-meeting-server
   - Install Docker Engine and Docker Compose
 
 ```bash
-ssh pi-meeting-server 'bash -e -s' < ./install-docker.sh
+ssh pi-camera-server 'bash -e -s' < ./install-docker.sh
 ```
 
   - Test docker
 
 ```bash
-ssh pi-meeting-server docker run --rm hello-world
+ssh pi-camera-server docker run --rm hello-world
 ```
 
 4. Create folder for apps
 
 ```bash
-ssh pi-meeting-server 'mkdir ~/pi-meeting; mkdir ~/pi-meeting/web-viewer; mkdir ~/pi-meeting/vendor; mkdir ~/pi-meeting/signaling'
+ssh pi-camera-server 'mkdir -p ~/pi-camera/web-viewer ~/pi-camera/vendor ~/pi-camera/signaling'
 ```
 
 5. Set environment variables for remote server, go to remote server, and append below content in ~/.profile
 
 ```bash
-export PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT="<EC2 public IP>:4001"
+export PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT="<server public IP>:4001"
 export PI_MEETING_UPSTREAM_HOSTNAME=signaling-app
-export PI_MEETING_ADVERTISED_IP=<EC2 public IP>
 ```
 
 6. Make sure the firewall setting (e.g. AWS EC2 Security Group) are
@@ -57,7 +56,7 @@ cd apps/vendor-services
 # ..
 
 # Copy package to remote server and extract it
-tar -c build/ | ssh pi-meeting-server 'cat >/tmp/vendor.tar'; ssh pi-meeting-server 'tar -xf /tmp/vendor.tar -C ~/pi-meeting/vendor/'
+tar -c build/ | ssh pi-camera-server 'cat >/tmp/vendor.tar'; ssh pi-camera-server 'tar -xf /tmp/vendor.tar -C ~/pi-camera/vendor/'
 ```
 
 - Go to remote server at corresponding folder and launch app by `start.sh` file

@@ -6,9 +6,16 @@ Start 3rd-party services. Make sure to install [docker](https://docs.docker.com/
 
 `bash scripts/dev-start.sh`
 
+- See `src/start.sh` for supported environments
 - Listen ports:
   * gRPC 4001
   * UDP 3478
+
+**If web-viewer and pi-client are in local machine, set PI_MEETING_ADVERTISED_IP=127.0.0.1**
+
+**If web-viewer and pi-client are in local network, set PI_MEETING_ADVERTISED_IP=<local IP>**
+
+**If deploying on Internet, leave PI_MEETING_ADVERTISED_IP empty**
 
 **To create build package for running on server**
 

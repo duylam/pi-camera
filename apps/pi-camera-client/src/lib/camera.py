@@ -6,6 +6,7 @@ import av
 import queue
 from lib import const, config
 
+
 class Camera:
     def __init__(self, debug_ns: str):
         self._pi_frame_queue = queue.Queue(500)
@@ -61,7 +62,7 @@ class Camera:
             self, format='h264',
             # See https://www.rgb.com/h264-profiles
             profile='baseline',
-            resize= config.VIDEO_RESOLUTION,
+            resize=config.VIDEO_RESOLUTION,
             quality=config.VIDEO_QUALITY_OPTION)
         self._av_codec = av.CodecContext.create('h264', 'r')
         return self
