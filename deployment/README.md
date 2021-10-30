@@ -36,7 +36,7 @@ ssh pi-camera-server 'mkdir -p ~/pi-camera/web-viewer ~/pi-camera/vendor ~/pi-ca
 5. Set environment variables for remote server, go to remote server, and append below content in ~/.profile
 
 ```bash
-export PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT="<EC2 public IP>:4001"
+export PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT="<server public IP>:4001"
 export PI_MEETING_UPSTREAM_HOSTNAME=signaling-app
 ```
 
