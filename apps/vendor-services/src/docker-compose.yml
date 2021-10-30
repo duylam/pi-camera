@@ -14,7 +14,6 @@ services:
     ports:
       - "3478:3478/udp"
     command: ['--no-software-attribute', '--no-cli', '--stun-only', '--listening-port', '3478', '--external-ip', "${PI_MEETING_ADVERTISED_IP}"]
-    #command: ['--no-software-attribute', '--no-cli', '--stun-only', '--listening-port', '3478', '--relay-ip', "${PI_MEETING_ADVERTISED_IP}", '--relay-ip', "127.0.0.1", '--listening-ip', "${PI_MEETING_ADVERTISED_IP}", '--listening-ip', "127.0.0.1"]
   grpc-web-proxy:
     image: envoyproxy/envoy:v1.14.4
     container_name: grpc-web-proxy
