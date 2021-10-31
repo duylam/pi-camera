@@ -19,16 +19,14 @@ A web server app to forward WebRTC Signaling messages for clients
 1. Install NodeJS v14
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-nvm install 14.17.0
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash; nvm install 14.17.0
 ```
 
 2. Consult necessary environment variables in `src/lib/config.js`
 1. (Optional) Create `.env.local` file to set value for them in local (ignored by git). The content is like
 
 ```bash
-PI_MEETING_REST_PORT=4001
-PI_MEETING_HEARTBEAT_INTERVAL_MS=5000
+PI_CAMERA_GRPC_PORT=4000
 ```
 
 # 2. Coding workflow
