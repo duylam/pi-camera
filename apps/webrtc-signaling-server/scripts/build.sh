@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker_image_name=${PI_MEETING_DOCKER_IMAGE_NAME-webrtc-signaling} 
-docker_image_tag=${PI_MEETING_DOCKER_IMAGE_TAG-latest}
+docker_image_name=${PI_CAMERA_DOCKER_IMAGE_NAME-webrtc-signaling} 
+docker_image_tag=${PI_CAMERA_DOCKER_IMAGE_TAG-latest}
 
 npm i
 rm -rf build || true

@@ -33,11 +33,13 @@ ssh pi-camera-server docker run --rm hello-world
 ssh pi-camera-server 'mkdir -p ~/pi-camera/web-viewer ~/pi-camera/vendor ~/pi-camera/signaling'
 ```
 
-5. Set environment variables for remote server, go to remote server, and append below content in ~/.profile
+5. Set environment variables for remote server, go to remote server, and append below content in `~/.profile`
 
 ```bash
-export PI_MEETING_DOWNSTREAM_HOSTNAME_AND_PORT="<server public IP>:4001"
-export PI_MEETING_UPSTREAM_HOSTNAME=signaling-app
+server_id=<server public ip>
+export PI_CAMERA_DOWNSTREAM_HOSTNAME_AND_PORT=$server_id:4001
+export VUE_APP_WEBRTC_ICE_SERVER_URLS=stun:$server_id:3478?transport=udp
+export VUE_APP_GRPC_API_BASE_URL=http://$PI_CAMERA_DOWNSTREAM_HOSTNAME_AND_PORT
 ```
 
 6. Make sure the firewall setting (e.g. AWS EC2 Security Group) are
