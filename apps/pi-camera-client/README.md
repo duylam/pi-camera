@@ -36,13 +36,12 @@ Since it's written in Python, the app can run on non-Pi machine as well, of cour
 
 ## 1.2. On Raspberry Pi
 
-1. Equip Raspberry Pi (tested on Pi 3 Model B) with OS 8 Jessie (tested)
+1. Equip Raspberry Pi (tested on Pi 3 Model B on OS 8 Jessie)
 1. [Install Camera module](https://projects.raspberrypi.org/en/projects/getting-started-with-picamera)
   - The Camera can be damaged easily due to [Electrostatic discharge](https://en.wikipedia.org/wiki/Electrostatic_discharge) (see more [here](https://raspberrypi.stackexchange.com/questions/12265/how-to-protect-rpi-camera-from-esd)). Therefore, **DO NOT** touch the camera while it connects to Pi and the Pi's power is on.
   - To verify the Camera works, run `raspistill -o /tmp/image.jpg`. If there is no error then the Camera module works ok
 
-3. Run `bash scripts/pi/setup.sh` for system dependenies
-1. Run `bash scripts/pi/dev-setup.sh` for development utilities
+3. (Once) Run `bash scripts/setup-pi.sh` for system dependenies
 
 # 2. Development workflow
 
@@ -77,7 +76,7 @@ Launch the app: `python3 src/app.py`
 # 3. Deployment
 
 1. Equip Pi and Camera module attached
-1. Run `bash scripts/pi/setup.sh` on Pi
+1. Run `bash scripts/setup-pi.sh` on Pi
 1. Create build package: `poetry build --format sdist`
 1. TODO: build, unpack and configure env
 
